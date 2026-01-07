@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>城邦抽卡系统</title>
+    <title>斗地主之战</title>
     <style>
         * {
             margin: 0;
@@ -467,8 +467,8 @@
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>城邦抽卡系统</h1>
-            <p>为每局扑克游戏添加特殊效果</p>
+            <h1>斗地主之战</h1>
+            <p>为每局斗地主游戏添加特殊效果</p>
         </div>
 
         <div class="main-content">
@@ -476,10 +476,10 @@
             <div class="draw-page" id="drawPage">
                 <div class="card-display" id="cardDisplay">
                     <div class="card-icon">🎴</div>
-                    <div class="card-title">点击抽卡</div>
-                    <div class="card-description">开始你的城邦冒险</div>
+                    <div class="card-title">点击启动</div>
+                    <div class="card-description">开始你的斗地主之战</div>
                 </div>
-                <button class="draw-button" id="drawButton">抽卡</button>
+                <button class="draw-button" id="drawButton">启动</button>
                 <div class="loading" id="loading">
                     <div class="loading-spinner"></div>
                 </div>
@@ -488,8 +488,8 @@
             <!-- 图鉴页面 -->
             <div class="collection-page" id="collectionPage">
                 <div class="collection-header-text">
-                    <h2>城邦图鉴</h2>
-                    <p>查看所有可用的城邦效果</p>
+                    <h2>图鉴</h2>
+                    <p>查看所有可用的效果</p>
                 </div>
                 <div class="collection-grid" id="collectionGrid">
                     <!-- 卡片将通过JavaScript动态生成 -->
@@ -500,7 +500,7 @@
             <div class="leaderboard-page" id="leaderboardPage">
                 <div class="leaderboard-header">
                     <h2>排行榜</h2>
-                    <p>顶级玩家积分榜</p>
+                    <p>玩家积分榜</p>
                 </div>
                 <div class="leaderboard-list" id="leaderboardList">
                     <!-- 排行榜数据将通过JavaScript动态生成 -->
@@ -531,42 +531,42 @@
                 id: 1,
                 name: "黄金之城",
                 icon: "💰",
-                description: "本局游戏中，所有玩家初始筹码翻倍",
+                description: "所有玩家积分奖励翻倍",
                 color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
             },
             {
                 id: 2,
-                name: "魔法学院",
+                name: "公平交易",
                 icon: "🔮",
-                description: "允许玩家每局使用一次换牌技能",
+                description: "所有玩家都可以和下家交换一张牌",
                 color: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
             },
             {
                 id: 3,
-                name: "暗影要塞",
+                name: "暗夜之光",
                 icon: "🌙",
-                description: "本局所有玩家的手牌对其他玩家不可见",
+                description: "所有玩家全部明牌打",
                 color: "linear-gradient(135deg, #2c3e50 0%, #3498db 100%)"
             },
             {
                 id: 4,
                 name: "时间神殿",
                 icon: "⏰",
-                description: "每轮可以多获得10秒的思考时间",
+                description: "本局游戏限时3分钟，3分钟后谁的牌最少谁赢",
                 color: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)"
             },
             {
                 id: 5,
                 name: "幸运广场",
                 icon: "🍀",
-                description: "本局游戏中，所有玩家获得一次重抽机会",
+                description: "所有玩家可在已出牌库中随机抽一张牌",
                 color: "linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%)"
             },
             {
                 id: 6,
-                name: "智慧之塔",
+                name: "我要验牌",
                 icon: "🧠",
-                description: "允许玩家查看牌堆顶部的3张牌",
+                description: "所有玩家都可以选择看上家或下家的牌，二选一",
                 color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
             },
             {
