@@ -559,7 +559,7 @@
                 id: 5,
                 name: "幸运广场",
                 icon: "🍀",
-                description: "所有玩家可在已出牌库中随机摸一张牌",
+                description: "所有玩家可在已出牌库中自选一张牌，但是必须每回合结束后才可以选",
                 color: "linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%)"
             },
             {
@@ -573,7 +573,7 @@
                 id: 7,
                 name: "给我擦皮鞋",
                 icon: "⚔️",
-                description: "最后一名输家给第一名赢家擦皮鞋，不想擦可以支付5积分",
+                description: "最后一名输家给第一名赢家5积分",
                 color: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
             },
             {
@@ -633,15 +633,15 @@
                 id: 15,
                 name: "心态炸了",
                 icon: "💰",
-                description: "所有人手里的炸弹不可用，但可以拆开出",
+                description: "所有人手里的炸弹禁用，但可以拆开用",
                 color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
             },
 
             {
                 id: 16,
-                name: "拖油瓶",
+                name: "捡垃圾",
                 icon: "💰",
-                description: "强制所有玩家开局选择1张牌扔掉",
+                description: "所有玩家开局选择1张牌扔掉，全部扔完后从上轮赢家开始捡垃圾顺序",
                 color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
             },
 
@@ -681,7 +681,7 @@
                 id: 21,
                 name: "军火商",
                 icon: "💰",
-                description: "任何都可以使用5积分当作无敌炸弹",
+                description: "可以使用一次5积分当作无敌炸弹",
                 color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
             },
 
@@ -705,9 +705,221 @@
                 id: 24,
                 name: "拆卸器",
                 icon: "💰",
-                description: "每人有一次猜大王或小王在谁那，猜对了直接拆掉对方的王给自己用，只能猜一张，猜错无惩罚",
+                description: "开局有一次猜大王或小王在谁那，猜对了直接拆掉对方的王给自己用，只能猜一张，猜错无惩罚",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+                        {
+                id: 25,
+                name: "模仿秀",
+                icon: "💰",
+                description: "本局可以模仿上家出同样的牌",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 26,
+                name: "通吃",
+                icon: "💰",
+                description: "每人给赢家5积分",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 27,
+                name: "盗版炸弹",
+                icon: "💰",
+                description: "任意3张牌当炸弹用，只能用来炸普通牌，对正版炸弹不生效。每局每人只能使用1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 28,
+                name: "执法官",
+                icon: "💰",
+                description: "回合结束后可在已出的牌库中拿走的1个炸弹，必须是其他人打出的炸弹，每局只能使用1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 29,
+                name: "进化",
+                icon: "💰",
+                description: "任意1个炸弹变为王炸，但是比真王炸小",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 30,
+                name: "点金器",
+                icon: "💰",
+                description: "本局每使用1次炸弹积分加5",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 31,
+                name: "概不退换",
+                icon: "💰",
+                description: "使用5积分购买任意一人的1个炸弹，如果他没有炸弹则交易失败，5积分不退",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 32,
+                name: "非法集资",
+                icon: "💰",
+                description: "每人丢弃2张牌，全部扔完后从上轮赢家开始捡垃圾顺序",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 33,
+                name: "狸猫换太子",
+                icon: "💰",
+                description: "本局可以拿出自己1张不要的牌换已出牌库中的任意1张牌",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 34,
+                name: "有内鬼终止交易",
+                icon: "💰",
+                description: "任何人每出1个炸弹，除了自己不扣，其他人都扣除5积分",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 35,
+                name: "超级加倍",
+                icon: "💰",
+                description: "抓完牌后把自己任意数量的积分放到积分池，挑战获得第1名积分翻倍，挑战失败积分消失，不可放弃挑战，抓牌前可以用5积分刷新海克斯",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 36,
+                name: "制裁",
+                icon: "💰",
+                description: "本局第1个出炸弹的人你可以随机抽他手中1张牌自己用，每局只能抽1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 37,
+                name: "七天无理由",
+                icon: "💰",
+                description: "开局每人可以在上家手里随机抽1张牌，不想要的牌可以还回去",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 38,
+                name: "指挥官",
+                icon: "💰",
+                description: "强制指挥上家收回刚出的牌1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 39,
+                name: "幸运大奖",
+                icon: "💰",
+                description: "本局赢家可以在积分池随机抽出1个积分币",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+
+            {
+                id: 40,
+                name: "身份证",
+                icon: "💰",
+                description: "选择任意1张牌可以当做大王使用，大王的功能它都有，但不能当王炸出，每局可以使用1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 41,
+                name: "复印件",
+                icon: "💰",
+                description: "选择任意1张牌可以当做小王使用，小王的功能它都有，但不能当王炸出，每局可以使用1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 42,
+                name: "买定离手",
+                icon: "💰",
+                description: "无论谁使用了炸弹，出炸弹的人都可以在刚出的炸弹中任意选择1张牌，让其他人猜花色，猜对的人给他5积分，猜错的人给你5积分",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 43,
+                name: "最强防御",
+                icon: "💰",
+                description: "可以任何时候防御其他人对自己使用的炸弹，每局能防御1次，防御成功后炸弹不能拿回去",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 44,
+                name: "灵魂互换",
+                icon: "💰",
+                description: "所有人把牌给上家，任何人都可以选择不换，只要有一家不换城邦就作废，并且拒绝的那个人支付5积分到积分池",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 45,
+                name: "变形重组器",
+                icon: "💰",
+                description: "任何时候都可以把手中的牌放入已出牌库中打乱重新抓同样数量的牌，每局能使用1次",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 46,
+                name: "慈善家",
+                icon: "💰",
+                description: "本局赢的人给输的人5积分",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 47,
+                name: "撤股跑路",
+                icon: "💰",
+                description: "本局赢的人可以拿走积分最多的人的20积分",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 48,
+                name: "梭哈",
+                icon: "💰",
+                description: "本局没有系统积分奖励，所有人把桌面上的积分都放在一起，第1名把全部面额是20积分的拿走，第2名把全部面额是10积分的拿走，第3名把全部面额是5积分的拿走，第4没有积分",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+            {
+                id: 49,
+                name: "权势滔天",
+                icon: "💰",
+                description: "本局4人打的话随机抽14张牌丢弃，3个人打丢9张，有大王或小王的人可以在丢弃的牌库中自选1张牌，大王优先选，大小王都在1个人手里的话可以拿走所有丢弃的牌",
+                color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
+            },
+
+
+            {
+                id: 50,
+                name: "财神降临",
+                icon: "💰",
+                description: "奖励在场每个人10积分",
                 color: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"
             }
+
+            
         ];
 
         // 模拟排行榜数据
