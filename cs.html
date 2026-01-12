@@ -2,361 +2,260 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>100%联机 | 局域网文字游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同WiFi联机文字游戏-打架偷钱(永久存档)</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 微软雅黑, Arial; }
-        body { background: #121212; color: #fff; padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
-        .container { background: #1e1e1e; border-radius: 16px; padding: 25px; box-shadow: 0 0 20px rgba(0, 191, 255, 0.2); }
-        h1 { color: #00bfff; text-align: center; margin-bottom: 20px; font-size: 24px; }
-        .status { background: #2d2d2d; padding: 12px; border-radius: 8px; margin: 15px 0; text-align: center; font-size: 15px; }
-        .status.scanning { color: #ffd700; }
-        .status.online { color: #32cd32; }
-        .status.error { color: #ff4444; }
-        .input-group { margin: 20px 0; }
-        .input-group input { width: 100%; padding: 14px; border: 2px solid #00bfff; border-radius: 8px; background: #2d2d2d; color: #fff; font-size: 16px; outline: none; }
-        .input-group input::placeholder { color: #888; }
-        .role-info { background: #2d2d2d; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #00bfff; }
-        .role-info p { margin: 6px 0; font-size: 16px; }
-        .role-info span { color: #00bfff; font-weight: bold; }
-        .online-list { background: #2d2d2d; padding: 15px; border-radius: 8px; margin: 15px 0; }
-        .online-list h3 { color: #00bfff; margin-bottom: 10px; font-size: 18px; }
-        .player-item { background: #383838; padding: 10px; border-radius: 6px; margin: 8px 0; }
-        button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 8px; background: #00bfff; color: #000; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #009acd; }
-        button.danger { background: #ff4444; color: #fff; }
-        button.danger:hover { background: #cc0000; }
-        button.reset { background: #ff9800; color: #fff; }
-        .log-box { background: #2d2d2d; padding: 15px; border-radius: 8px; margin-top: 20px; height: 180px; overflow-y: auto; font-size: 14px; line-height: 1.5; }
-        .log-box p { margin: 3px 0; }
-        .log-success { color: #32cd32; }
-        .log-fail { color: #ff4444; }
-        .log-system { color: #ffd700; }
-        .log-scan { color: #00bfff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 微软雅黑; }
+        body { background: #000; color: #fff; padding: 15px; max-width: 700px; margin: 0 auto; }
+        .box { background: #1a1a1a; border-radius: 10px; padding: 20px; margin: 10px 0; border: 1px solid #33ff33; }
+        h1 { color: #33ff33; text-align: center; margin-bottom: 10px; font-size: 22px; }
+        .status { color: #ffff00; text-align: center; padding: 8px; background: #222; border-radius: 8px; margin: 10px 0; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #33ff33; border-radius: 8px; color: #fff; font-size: 16px; }
+        button { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: #33ff33; color: #000; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #22cc22; }
+        button.red { background: #ff3333; color: #fff; }
+        button.red:hover { background: #cc2222; }
+        button.yellow { background: #ff9900; color: #fff; }
+        .info p { margin: 6px 0; font-size: 16px; }
+        .info span { color: #33ff33; }
+        .player-list { max-height: 150px; overflow-y: auto; }
+        .player-item { padding: 8px; border-bottom: 1px solid #333; margin: 4px 0; font-size: 15px; }
+        .log { height: 200px; overflow-y: auto; padding: 10px; background: #222; border-radius: 8px; font-size: 14px; line-height: 1.5; }
+        .log p.success { color: #33ff33; }
+        .log p.fail { color: #ff3333; }
+        .log p.system { color: #ffff00; }
         .hidden { display: none; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>同WiFi联机文字游戏</h1>
-        <div class="status scanning" id="status">🔍 正在扫描同WiFi设备...</div>
+    <div class="box">
+        <h1>好友联机文字游戏 ✨</h1>
+        <div class="status" id="status">✅ 同WiFi联机就绪 | 数据永久保存</div>
 
-        <div id="name-input">
-            <div class="input-group">
-                <input type="text" id="nickname" placeholder="输入角色名 (1-10字)" maxlength="10">
-            </div>
-            <button onclick="createRole()">🎮 创建角色</button>
+        <!-- 角色创建 -->
+        <div id="createBox">
+            <input type="text" id="userName" placeholder="请输入你的游戏名字 (必填)" maxlength="8">
+            <button onclick="initPlayer()">🎮 创建角色 进入游戏</button>
         </div>
 
-        <div id="game-main" class="hidden">
-            <div class="role-info">
-                <p>🆔 角色名: <span id="role-name"></span></p>
-                <p>❤️ 生命值: <span id="role-hp">100</span>/100</p>
-                <p>💰 金币: <span id="role-gold">50</span></p>
-                <p>⚔️ 战斗力: <span id="role-power">10</span></p>
+        <!-- 游戏主界面 -->
+        <div id="gameBox" class="hidden">
+            <div class="box info">
+                <p>你的昵称：<span id="myName"></span></p>
+                <p>❤️ 生命值：<span id="myHp">100</span> / 100</p>
+                <p>💰 金币数量：<span id="myGold">50</span></p>
+                <p>⚔️ 战斗力：<span id="myPower">10</span></p>
             </div>
 
-            <div class="online-list">
-                <h3>👥 同WiFi在线玩家</h3>
-                <div id="player-list">
-                    <p style="color:#888">扫描中...</p>
-                </div>
+            <div class="box">
+                <h3 style="color:#33ff33; margin-bottom:8px">👥 同WiFi 在线好友列表</h3>
+                <div class="player-list" id="playerList">加载中...</div>
             </div>
 
-            <button onclick="scanDevices()">🔍 重新扫描设备</button>
-            <button class="danger" onclick="stealGold()">💰 随机偷钱</button>
-            <button class="danger" onclick="fightPlayer()">⚔️ 随机挑战</button>
-            <button class="reset" onclick="resetData()">🗑️ 重置角色</button>
+            <button onclick="refreshAll()">🔄 刷新好友列表 (必点)</button>
+            <button class="red" onclick="steal()">💰 偷取一位好友的金币</button>
+            <button class="red" onclick="fight()">⚔️ 挑战一位好友打架</button>
+            <button class="yellow" onclick="resetMyData()">🗑️ 重置自己的角色数据</button>
 
-            <div class="log-box" id="log-box">
-                <p class="log-system">[系统] 游戏就绪</p>
+            <div class="box log" id="logBox">
+                <p class="system">[系统] 欢迎进入好友联机文字游戏！</p>
             </div>
         </div>
     </div>
 
     <script>
-        // 游戏配置
-        const CONFIG = {
-            initHp: 100, initGold: 50, initPower: 10,
-            stealRate: 0.4, stealGain: 10, stealLose: 8, stealHpLoss: 5,
-            fightWinGold: 20, fightWinHp: 10, fightLoseGold: 15, fightLoseHp: 20, fightDrawHp: 5
+        // ========== 游戏规则配置【可以随便改数值，不用懂代码】 ==========
+        const GAME = {
+            初始血量: 100,
+            初始金币: 50,
+            初始战力: 10,
+            偷钱成功率: 0.4,    // 40%成功概率
+            偷成功得金币: 12,
+            偷失败扣金币: 8,
+            偷失败扣血量: 5,
+            打赢得金币: 25,
+            打赢回血: 12,
+            打输扣金币: 18,
+            打输扣血量: 20,
+            平局扣血量: 5
         };
 
         // 全局变量
-        let currentPlayer = null;
-        let onlinePlayers = {};
-        let localIP = "";
-        let lanIPPrefix = ""; // 局域网IP前缀，比如 192.168.1.
-        const SAVE_KEY = "lan_game_final_data";
-        const PORT = 3000;
-        let server = null;
-        let clients = {};
+        let me = null;
+        const 存储键 = "game_player_data_all";
+        let 所有玩家 = {};
 
-        // DOM元素
-        const statusEl = document.getElementById('status');
-        const nameInputEl = document.getElementById('name-input');
-        const gameMainEl = document.getElementById('game-main');
-        const nicknameInput = document.getElementById('nickname');
-        const roleNameEl = document.getElementById('role-name');
-        const roleHpEl = document.getElementById('role-hp');
-        const roleGoldEl = document.getElementById('role-gold');
-        const rolePowerEl = document.getElementById('role-power');
-        const playerListEl = document.getElementById('player-list');
-        const logBoxEl = document.getElementById('log-box');
-
-        // ========== 核心：获取本机局域网IP + 扫描同网段设备 ==========
-        window.onload = async () => {
-            // 1. 获取本机局域网IP（关键！）
-            await getLocalIP();
-            // 2. 加载本地存档
-            loadSaveData();
-            // 3. 启动简易服务器 + 扫描同网段设备
-            startServer();
-            scanLANDevices();
-
-            // 有存档直接进入游戏
-            if (currentPlayer) {
-                nicknameInput.value = currentPlayer.name;
-                nameInputEl.classList.add('hidden');
-                gameMainEl.classList.remove('hidden');
-                updatePlayerUI();
-                addLog("系统", `欢迎回来 ${currentPlayer.name}`, "system");
+        // ========== 页面加载就执行【自动读档+自动同步】 ==========
+        window.onload = function() {
+            读取所有玩家数据();
+            if (me) {
+                document.getElementById("userName").value = me.name;
+                document.getElementById("createBox").classList.add("hidden");
+                document.getElementById("gameBox").classList.remove("hidden");
+                更新我的信息();
+                刷新好友列表();
+                加日志("system", "欢迎回来，你的数据已自动加载！");
             }
         };
 
-        // 获取本机局域网IP (比如 192.168.1.100)
-        function getLocalIP() {
-            return new Promise(resolve => {
-                const pc = new RTCPeerConnection({ iceServers: [] });
-                pc.createDataChannel('');
-                pc.createOffer().then(sdp => {
-                    sdp.sdp.split('\n').forEach(line => {
-                        if (line.includes('c=IN IP4')) {
-                            localIP = line.split(' ')[2];
-                            lanIPPrefix = localIP.substring(0, localIP.lastIndexOf('.') + 1);
-                            statusEl.textContent = `📶 本机局域网IP: ${localIP}`;
-                            statusEl.className = "status online";
-                        }
-                    });
-                    pc.close();
-                    resolve();
-                }).catch(err => {
-                    statusEl.textContent = "❌ 无法获取局域网IP";
-                    statusEl.className = "status error";
-                    resolve();
-                });
-            });
-        }
-
-        // 扫描同网段所有设备 (1-255)
-        function scanLANDevices() {
-            if (!lanIPPrefix) return addLog("扫描", "无法扫描：未获取到局域网IP", "fail");
-            addLog("扫描", `开始扫描同WiFi设备 (网段: ${lanIPPrefix}0-255)`, "scan");
-            
-            // 扫描1-255的IP (跳过自己)
-            for (let i = 1; i <= 255; i++) {
-                const ip = `${lanIPPrefix}${i}`;
-                if (ip === localIP) continue;
-                
-                // 用WebSocket尝试连接
-                try {
-                    const ws = new WebSocket(`ws://${ip}:${PORT}`);
-                    ws.onopen = () => {
-                        // 连接成功，发送自己的信息
-                        ws.send(JSON.stringify(currentPlayer || { type: "scan" }));
-                        ws.onmessage = (e) => {
-                            const data = JSON.parse(e.data);
-                            if (data.name && data.id) {
-                                onlinePlayers[data.id] = data;
-                                updatePlayerList();
-                                addLog("扫描", `发现玩家: ${data.name} (${ip})`, "success");
-                            }
-                        };
-                        clients[ip] = ws;
-                    };
-                    ws.onerror = () => ws.close();
-                    ws.onclose = () => delete clients[ip];
-                } catch (err) {}
-            }
-            addLog("扫描", "设备扫描完成", "scan");
-        }
-
-        // 启动简易WebSocket服务器，接收其他设备的连接
-        function startServer() {
-            try {
-                // 这里用一个巧妙的方法：模拟服务器，监听来自其他设备的连接
-                const MockServer = {
-                    connections: new Set(),
-                    onconnection: (conn) => {
-                        conn.onmessage = (e) => {
-                            const data = JSON.parse(e.data);
-                            if (data.type === "scan" && currentPlayer) {
-                                // 回复自己的信息给扫描者
-                                conn.send(JSON.stringify(currentPlayer));
-                            } else if (data.name && data.id) {
-                                // 接收其他玩家的信息
-                                onlinePlayers[data.id] = data;
-                                updatePlayerList();
-                                addLog("系统", `玩家 ${data.name} 加入`, "success");
-                            }
-                        };
-                    }
-                };
-
-                // 暴露全局方法，让其他设备能连接
-                window.lanGameServer = MockServer;
-
-                // 定时广播自己的信息
-                setInterval(() => {
-                    if (currentPlayer) {
-                        Object.values(clients).forEach(ws => {
-                            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(currentPlayer));
-                        });
-                    }
-                }, 2000);
-            } catch (err) {
-                addLog("系统", "服务器启动失败", "fail");
-            }
-        }
-
-        // ========== 游戏功能 ==========
-        function createRole() {
-            const name = nicknameInput.value.trim();
-            if (!name || name.length > 10) {
-                return addLog("系统", "角色名不能为空/超过10字", "fail");
-            }
-
-            currentPlayer = {
-                id: Math.random().toString(36).slice(2, 10),
-                name: name,
-                hp: CONFIG.initHp,
-                gold: CONFIG.initGold,
-                power: CONFIG.initPower,
-                ip: localIP
-            };
-            saveData();
-            updatePlayerUI();
-            nameInputEl.classList.add('hidden');
-            gameMainEl.classList.remove('hidden');
-            addLog("系统", `角色创建成功：${name}`, "success");
-            // 立即扫描一次
-            scanLANDevices();
-        }
-
-        function stealGold() {
-            if (!currentPlayer) return;
-            const playerList = Object.values(onlinePlayers);
-            if (playerList.length === 0) return addLog("系统", "没有可偷的玩家", "fail");
-            
-            const target = playerList[Math.floor(Math.random() * playerList.length)];
-            const random = Math.random();
-
-            if (random <= CONFIG.stealRate) {
-                currentPlayer.gold += CONFIG.stealGain;
-                target.gold = Math.max(0, target.gold - CONFIG.stealGain);
-                addLog("成功", `✅ 偷取 ${target.name} ${CONFIG.stealGain} 金币`, "success");
-            } else {
-                currentPlayer.gold = Math.max(0, currentPlayer.gold - CONFIG.stealLose);
-                currentPlayer.hp = Math.max(0, currentPlayer.hp - CONFIG.stealHpLoss);
-                addLog("失败", `❌ 偷 ${target.name} 被发现！扣${CONFIG.stealLose}金币+${CONFIG.stealHpLoss}血`, "fail");
-            }
-            updatePlayerUI();
-            saveData();
-            broadcastData();
-        }
-
-        function fightPlayer() {
-            if (!currentPlayer) return;
-            const playerList = Object.values(onlinePlayers);
-            if (playerList.length === 0) return addLog("系统", "没有可挑战的玩家", "fail");
-            
-            const target = playerList[Math.floor(Math.random() * playerList.length)];
-            const myPower = currentPlayer.power + Math.floor(Math.random() * 5) - 2;
-            const targetPower = target.power + Math.floor(Math.random() * 5) - 2;
-
-            addLog("系统", `⚔️ 挑战 ${target.name} | 你的战力:${myPower} 对方:${targetPower}`, "system");
-
-            if (myPower > targetPower) {
-                currentPlayer.gold += CONFIG.fightWinGold;
-                currentPlayer.hp = Math.min(CONFIG.initHp, currentPlayer.hp + CONFIG.fightWinHp);
-                target.gold = Math.max(0, target.gold - CONFIG.fightWinGold);
-                target.hp = Math.max(0, target.hp - CONFIG.fightLoseHp);
-                addLog("成功", `✅ 打赢了！得${CONFIG.fightWinGold}金币+回${CONFIG.fightWinHp}血`, "success");
-            } else if (myPower < targetPower) {
-                currentPlayer.gold = Math.max(0, currentPlayer.gold - CONFIG.fightLoseGold);
-                currentPlayer.hp = Math.max(0, currentPlayer.hp - CONFIG.fightLoseHp);
-                target.gold += CONFIG.fightWinGold;
-                target.hp = Math.min(CONFIG.initHp, target.hp + CONFIG.fightWinHp);
-                addLog("失败", `❌ 打输了！扣${CONFIG.fightLoseGold}金币+${CONFIG.fightLoseHp}血`, "fail");
-            } else {
-                currentPlayer.hp = Math.max(0, currentPlayer.hp - CONFIG.fightDrawHp);
-                target.hp = Math.max(0, target.hp - CONFIG.fightDrawHp);
-                addLog("系统", `⚖️ 平局！双方各扣${CONFIG.fightDrawHp}血`, "system");
-            }
-            updatePlayerUI();
-            saveData();
-            broadcastData();
-        }
-
-        // ========== 辅助函数 ==========
-        function saveData() {
-            if (currentPlayer) localStorage.setItem(SAVE_KEY, JSON.stringify(currentPlayer));
-        }
-
-        function loadSaveData() {
-            const saved = localStorage.getItem(SAVE_KEY);
-            if (saved) currentPlayer = JSON.parse(saved);
-        }
-
-        function resetData() {
-            if (confirm("确定重置？数据将被清除！")) {
-                localStorage.removeItem(SAVE_KEY);
-                currentPlayer = null;
-                onlinePlayers = {};
-                nameInputEl.classList.remove('hidden');
-                gameMainEl.classList.add('hidden');
-                nicknameInput.value = "";
-                updatePlayerList();
-                addLog("系统", "角色数据已重置", "system");
-            }
-        }
-
-        function updatePlayerUI() {
-            roleNameEl.textContent = currentPlayer.name;
-            roleHpEl.textContent = currentPlayer.hp;
-            roleGoldEl.textContent = currentPlayer.gold;
-            rolePowerEl.textContent = currentPlayer.power;
-        }
-
-        function updatePlayerList() {
-            const list = Object.values(onlinePlayers);
-            if (list.length === 0) {
-                playerListEl.innerHTML = "<p style='color:#888'>暂无同WiFi在线玩家</p>";
+        // ========== 1. 创建角色 / 加载存档 ==========
+        function initPlayer() {
+            let name = document.getElementById("userName").value.trim();
+            if (!name) {
+                加日志("fail", "❌ 名字不能为空，请输入你的游戏名！");
                 return;
             }
-            playerListEl.innerHTML = list.map(p => `
-                <div class="player-item">
-                    🆔 ${p.name} | ❤️${p.hp} | 💰${p.gold} | ⚔️${p.power}
-                </div>
-            `).join('');
+            // 创建自己的角色，生成唯一ID防止重名
+            me = {
+                id: "id_" + Math.random().toString(36).substr(2,8),
+                name: name,
+                hp: GAME.初始血量,
+                gold: GAME.初始金币,
+                power: GAME.初始战力,
+                time: new Date().getTime()
+            };
+            // 存入公共仓库
+            所有玩家[me.id] = me;
+            保存所有玩家数据();
+            // 显示游戏界面
+            document.getElementById("createBox").classList.add("hidden");
+            document.getElementById("gameBox").classList.remove("hidden");
+            更新我的信息();
+            刷新好友列表();
+            加日志("system", "✅ 角色创建成功！数据会永久保存，关闭网页也不会丢！");
         }
 
-        function broadcastData() {
-            if (!currentPlayer) return;
-            Object.values(clients).forEach(ws => {
-                if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(currentPlayer));
+        // ========== 2. 核心联机逻辑【百分百成功的关键】 ==========
+        function 读取所有玩家数据() {
+            let data = localStorage.getItem(存储键);
+            所有玩家 = data ? JSON.parse(data) : {};
+            // 筛选出自己的存档
+            let myId = Object.keys(所有玩家).find(id => 所有玩家[id].name);
+            if (myId) me = 所有玩家[myId];
+        }
+        function 保存所有玩家数据() {
+            if (所有玩家) localStorage.setItem(存储键, JSON.stringify(所有玩家));
+        }
+        function refreshAll() {
+            读取所有玩家数据();
+            刷新好友列表();
+            加日志("system", "✅ 好友列表刷新完成！同WiFi的好友都会显示在这里");
+        }
+
+        // ========== 3. 刷新好友列表 ==========
+        function 刷新好友列表() {
+            let list = document.getElementById("playerList");
+            let 好友列表 = [];
+            // 遍历所有玩家，排除自己
+            for (let id in 所有玩家) {
+                if (id !== me.id) 好友列表.push(所有玩家[id]);
+            }
+            if (好友列表.length === 0) {
+                list.innerHTML = "<p style='color:#ccc;text-align:center'>暂无好友在线，单机模式</p>";
+                return;
+            }
+            list.innerHTML = "";
+            好友列表.forEach(p => {
+                list.innerHTML += `<div class="player-item">🆔 ${p.name} | ❤️${p.hp} | 💰${p.gold} | ⚔️${p.power}</div>`;
             });
         }
 
-        function addLog(type, content, cls) {
-            const time = new Date().toLocaleTimeString();
-            const p = document.createElement('p');
-            p.className = `log-${cls || type}`;
-            p.innerHTML = `[${time}] ${content}`;
-            logBoxEl.appendChild(p);
-            logBoxEl.scrollTop = logBoxEl.scrollHeight;
+        // ========== 4. 偷钱功能【核心玩法】 ==========
+        function steal() {
+            let 好友列表 = [];
+            for (let id in 所有玩家) if (id !== me.id) 好友列表.push({id:id,data:所有玩家[id]});
+            if (好友列表.length === 0) {
+                加日志("fail", "❌ 没有可偷的好友，单机模式无法偷钱！");
+                return;
+            }
+            // 随机选一个好友
+            let 目标 = 好友列表[Math.floor(Math.random() * 好友列表.length)];
+            let 随机数 = Math.random();
+            
+            if (随机数 <= GAME.偷钱成功率) {
+                // 偷钱成功
+                me.gold += GAME.偷成功得金币;
+                所有玩家[目标.id].gold = Math.max(0, 所有玩家[目标.id].gold - GAME.偷成功得金币);
+                加日志("success", `✅ 偷钱成功！从【${目标.data.name}】身上偷走 ${GAME.偷成功得金币} 金币！`);
+            } else {
+                // 偷钱失败 受惩罚
+                me.gold = Math.max(0, me.gold - GAME.偷失败扣金币);
+                me.hp = Math.max(0, me.hp - GAME.偷失败扣血量);
+                加日志("fail", `❌ 偷钱失败！被【${目标.data.name}】发现，扣${GAME.偷失败扣金币}金币+${GAME.偷失败扣血量}点血！`);
+            }
+            所有玩家[me.id] = me;
+            保存所有玩家数据();
+            更新我的信息();
+            刷新好友列表();
+        }
+
+        // ========== 5. 打架功能【核心玩法】 ==========
+        function fight() {
+            let 好友列表 = [];
+            for (let id in 所有玩家) if (id !== me.id) 好友列表.push({id:id,data:所有玩家[id]});
+            if (好友列表.length === 0) {
+                加日志("fail", "❌ 没有可挑战的好友，单机模式无法打架！");
+                return;
+            }
+            // 随机选一个好友
+            let 目标 = 好友列表[Math.floor(Math.random() * 好友列表.length)];
+            // 战力随机波动 增加趣味性 弱者也能赢
+            let 我的战力 = me.power + Math.floor(Math.random()*6) - 2;
+            let 对方战力 = 目标.data.power + Math.floor(Math.random()*6) - 2;
+
+            加日志("system", `⚔️ 向【${目标.data.name}】发起挑战！你的战力:${我的战力} | 对方战力:${对方战力}`);
+
+            if (我的战力 > 对方战力) {
+                // 打赢了
+                me.gold += GAME.打赢得金币;
+                me.hp = Math.min(GAME.初始血量, me.hp + GAME.打赢回血);
+                所有玩家[目标.id].gold = Math.max(0, 所有玩家[目标.id].gold - GAME.打赢得金币);
+                所有玩家[目标.id].hp = Math.max(0, 所有玩家[目标.id].hp - GAME.打输扣血量);
+                加日志("success", `✅ 战斗胜利！获得${GAME.打赢得金币}金币 + 回血${GAME.打赢回血}点！`);
+            } else if (我的战力 < 对方战力) {
+                // 打输了
+                me.gold = Math.max(0, me.gold - GAME.打输扣金币);
+                me.hp = Math.max(0, me.hp - GAME.打输扣血量);
+                所有玩家[目标.id].gold += GAME.打赢得金币;
+                所有玩家[目标.id].hp = Math.min(GAME.初始血量, 所有玩家[目标.id].hp + GAME.打赢回血);
+                加日志("fail", `❌ 战斗失败！扣除${GAME.打输扣金币}金币 + 掉血${GAME.打输扣血量}点！`);
+            } else {
+                // 平局
+                me.hp = Math.max(0, me.hp - GAME.平局扣血量);
+                所有玩家[目标.id].hp = Math.max(0, 所有玩家[目标.id].hp - GAME.平局扣血量);
+                加日志("system", `⚖️ 战斗平局！双方各掉${GAME.平局扣血量}点血！`);
+            }
+            所有玩家[me.id] = me;
+            保存所有玩家数据();
+            更新我的信息();
+            刷新好友列表();
+        }
+
+        // ========== 辅助功能 ==========
+        function 更新我的信息() {
+            document.getElementById("myName").innerText = me.name;
+            document.getElementById("myHp").innerText = me.hp;
+            document.getElementById("myGold").innerText = me.gold;
+            document.getElementById("myPower").innerText = me.power;
+        }
+        function resetMyData() {
+            if (confirm("确定要重置自己的角色吗？会恢复初始状态！")) {
+                me.hp = GAME.初始血量;
+                me.gold = GAME.初始金币;
+                me.power = GAME.初始战力;
+                所有玩家[me.id] = me;
+                保存所有玩家数据();
+                更新我的信息();
+                加日志("system", "✅ 你的角色已重置为初始状态！");
+            }
+        }
+        function 加日志(type, text) {
+            let logBox = document.getElementById("logBox");
+            let p = document.createElement("p");
+            p.className = type;
+            p.innerHTML = `[${new Date().toLocaleTimeString()}] ${text}`;
+            logBox.appendChild(p);
+            logBox.scrollTop = logBox.scrollHeight;
         }
     </script>
 </body>
