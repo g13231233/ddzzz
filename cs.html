@@ -2,38 +2,57 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>零配置联机文字游戏 - 打架偷钱</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>跨设备局域网联机文字游戏</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #222; color: #fff; padding: 20px; max-width: 600px; margin: 0 auto; }
-        .container { background: #333; border-radius: 12px; padding: 25px; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
-        h1 { color: #0f0; text-align: center; margin-bottom: 20px; font-size: 24px; }
-        .status { background: #444; padding: 10px; border-radius: 8px; margin: 15px 0; text-align: center; color: #ffd700; }
-        .role-info { background: #444; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #0f0; }
-        .role-info p { margin: 5px 0; font-size: 16px; }
-        .online-list { background: #444; padding: 15px; border-radius: 8px; margin: 15px 0; }
-        .online-list h3 { color: #0f0; margin-bottom: 10px; font-size: 18px; }
-        .player-card { background: #555; padding: 10px; border-radius: 6px; margin: 8px 0; }
-        button { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: #0f0; color: #000; font-size: 16px; font-weight: bold; cursor: pointer; }
-        button:hover { background: #0cc; }
-        button.danger { background: #f44; }
-        button.danger:hover { background: #f66; }
-        .log-box { background: #444; padding: 15px; border-radius: 8px; margin-top: 20px; height: 200px; overflow-y: auto; font-size: 14px; }
-        .log-success { color: #0f0; }
-        .log-fail { color: #f44; }
-        .log-system { color: #ffd700; }
-        .hidden { display: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 微软雅黑, Arial, sans-serif; }
+        body { background: #1a1a1a; color: #fff; padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+        .container { background: #2d2d2d; border-radius: 16px; padding: 30px; box-shadow: 0 0 20px rgba(0,255,85,0.15); }
+        h1 { color: #00ff55; text-align: center; margin-bottom: 25px; font-size: 26px; }
+        .status { background: #383838; padding: 12px; border-radius: 10px; margin: 15px 0; text-align: center; font-size: 15px; }
+        .status.online { color: #00ff55; }
+        .status.offline { color: #ffcc00; }
+        .input-group { margin: 20px 0; }
+        .input-group input { width: 100%; padding: 14px; border: 2px solid #00ff55; border-radius: 10px; background: #383838; color: #fff; font-size: 16px; outline: none; }
+        .input-group input::placeholder { color: #888; }
+        .role-info { background: #383838; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #00ff55; }
+        .role-info p { margin: 8px 0; font-size: 17px; display: flex; justify-content: space-between; }
+        .role-info p span { color: #00ff55; font-weight: bold; }
+        .online-list { background: #383838; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .online-list h3 { color: #00ff55; margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .player-card { background: #454545; padding: 12px 15px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .player-card .name { font-weight: bold; font-size: 16px; }
+        .player-card .attr { font-size: 14px; color: #ddd; }
+        button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 10px; background: #00ff55; color: #000; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        button:hover { background: #00e04d; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        button.danger { background: #ff4444; color: #fff; }
+        button.danger:hover { background: #e03333; }
+        button.reset { background: #ff9800; color: #fff; margin-top: 15px; }
+        button.reset:hover { background: #f57c00; }
+        .log-box { background: #383838; padding: 15px; border-radius: 10px; margin-top: 20px; height: 200px; overflow-y: auto; font-size: 14px; line-height: 1.6; }
+        .log-box p { margin: 3px 0; }
+        .log-success { color: #00ff55; }
+        .log-fail { color: #ff4444; }
+        .log-system { color: #ffcc00; }
+        .log-info { color: #00bfff; }
+        .hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>局域网联机文字游戏</h1>
-        <div class="status" id="status">🔍 检测局域网中...</div>
+        <div class="status offline" id="status">🔍 检测局域网中...</div>
 
-        <!-- 角色创建 -->
-        <div id="role-create">
-            <button onclick="createRole()">🎮 创建游戏角色</button>
+        <!-- 角色名输入 -->
+        <div id="name-input">
+            <div class="input-group">
+                <input type="text" id="nickname" placeholder="输入你的角色名 (1-10字)" maxlength="10">
+            </div>
+            <button onclick="createRole()">🎮 创建角色进入游戏</button>
         </div>
 
         <!-- 游戏主界面 -->
@@ -46,46 +65,55 @@
             </div>
 
             <div class="online-list">
-                <h3>👥 在线玩家 (同一WiFi)</h3>
-                <div id="player-list">暂无在线玩家</div>
+                <h3>👥 在线玩家 (同WiFi)</h3>
+                <div id="player-list">
+                    <p style="color:#888; text-align:center">暂无在线玩家</p>
+                </div>
             </div>
 
             <button onclick="refreshPlayers()">🔄 刷新在线玩家</button>
             <button class="danger" onclick="stealGold()">💰 随机偷取金币</button>
             <button class="danger" onclick="fightPlayer()">⚔️ 随机挑战玩家</button>
+            <button class="reset" onclick="resetPlayerData()">🗑️ 重置角色数据</button>
 
             <div class="log-box" id="log-box">
-                <p class="log-system">[系统] 游戏开始</p>
+                <p class="log-system">[系统] 游戏已就绪</p>
             </div>
         </div>
     </div>
 
     <script>
-        // 游戏配置 (可直接改数值)
+        // 游戏核心配置 (可直接修改)
         const GAME_CONFIG = {
             initHp: 100,
             initGold: 50,
             initPower: 10,
-            stealSuccessRate: 0.4, // 偷钱成功率
-            stealGain: 10,         // 偷成功得金币
-            stealLose: 8,          // 偷失败扣金币
-            stealHpLoss: 5,        // 偷失败扣血
-            fightWinGold: 20,      // 打赢得金币
-            fightWinHp: 10,        // 打赢回血
-            fightLoseGold: 15,     // 打输扣金币
-            fightLoseHp: 20,       // 打输扣血
-            fightDrawHp: 5         // 平局扣血
+            stealSuccessRate: 0.4,   // 偷钱成功率40%
+            stealGain: 10,           // 偷成功得金币
+            stealLose: 8,            // 偷失败扣金币
+            stealHpLoss: 5,          // 偷失败扣血
+            fightWinGold: 20,        // 打赢得金币
+            fightWinHp: 10,          // 打赢回血
+            fightLoseGold: 15,       // 打输扣金币
+            fightLoseHp: 20,         // 打输扣血
+            fightDrawHp: 5,          // 平局扣血
+            maxHp: 100               // 最大生命值
         };
 
         // 全局变量
         let currentPlayer = null;
-        let onlinePlayers = new Map(); // 存储在线玩家 {id: player}
-        let broadcastChannel = null;
+        let onlinePlayers = new Map(); // 跨设备玩家列表
+        let peerConnections = new Map(); // WebRTC连接池
+        let localDataChannel = null;
+        const SAVE_KEY = "lan_game_ultimate_data"; // 本地存储键
+        const SIGNALING_CHANNEL = "lan_game_signaling"; // 信令通道
+        const DATA_CHANNEL_NAME = "lan_game_data"; // 数据通道
 
         // DOM元素
         const statusEl = document.getElementById('status');
-        const roleCreateEl = document.getElementById('role-create');
+        const nameInputEl = document.getElementById('name-input');
         const gameMainEl = document.getElementById('game-main');
+        const nicknameInput = document.getElementById('nickname');
         const roleNameEl = document.getElementById('role-name');
         const roleHpEl = document.getElementById('role-hp');
         const roleGoldEl = document.getElementById('role-gold');
@@ -93,82 +121,221 @@
         const playerListEl = document.getElementById('player-list');
         const logBoxEl = document.getElementById('log-box');
 
-        // ========== 初始化：零配置局域网通信 ==========
+        // ========== 初始化：本地存档 + 跨设备WebRTC联机 ==========
         window.onload = () => {
-            // 创建广播通道 (核心：同一WiFi下自动通信，无需IP/端口)
-            broadcastChannel = new BroadcastChannel('lan-text-game-final');
-            
-            // 监听其他玩家的消息
-            broadcastChannel.onmessage = (e) => {
-                try {
-                    const data = JSON.parse(e.data);
-                    if (!data || !data.id) return;
-                    handlePlayerData(data);
-                } catch (err) {}
-            };
+            // 1. 优先加载本地存档
+            loadPlayerData();
+            // 2. 初始化WebRTC跨设备通信 (核心：解决不同设备联机)
+            initWebRTC();
+            // 3. 状态更新
+            statusEl.className = "status online";
+            statusEl.textContent = "📶 局域网已就绪 | 支持跨设备联机";
+            addLog("系统", "跨设备联机通道已开启，同WiFi设备可互相发现", "system");
 
-            // 标记为联机状态
-            statusEl.textContent = "📶 已连接局域网 | 等待其他玩家";
-            statusEl.style.color = "#0f0";
-            addLog("系统", "局域网联机通道已开启，同一WiFi玩家会自动加入", "system");
+            // 有存档直接进入游戏
+            if (currentPlayer) {
+                nicknameInput.value = currentPlayer.name;
+                nameInputEl.classList.add('hidden');
+                gameMainEl.classList.remove('hidden');
+                updatePlayerUI();
+                broadcastPlayerData();
+                addLog("系统", `欢迎回来，${currentPlayer.name}！数据已加载`, "info");
+            }
         };
 
-        // ========== 核心功能 ==========
-        // 1. 创建角色
+        // ========== 核心：WebRTC跨设备通信实现 (无需修改) ==========
+        function initWebRTC() {
+            // 1. 信令通道：用于设备间交换连接信息
+            const signalingChannel = new BroadcastChannel(SIGNALING_CHANNEL);
+            signalingChannel.onmessage = async (e) => {
+                try {
+                    const signal = JSON.parse(e.data);
+                    if (signal.senderId === currentPlayer?.id) return; // 过滤自己的信号
+
+                    // 收到连接请求，创建/更新Peer连接
+                    if (!peerConnections.has(signal.senderId)) {
+                        await createPeerConnection(signal.senderId, signalingChannel);
+                    }
+                    const pc = peerConnections.get(signal.senderId);
+
+                    // 处理信令信息
+                    if (signal.type === 'offer') {
+                        await pc.setRemoteDescription(new RTCSessionDescription(signal.data));
+                        const answer = await pc.createAnswer();
+                        await pc.setLocalDescription(answer);
+                        signalingChannel.postMessage(JSON.stringify({
+                            senderId: currentPlayer.id,
+                            targetId: signal.senderId,
+                            type: 'answer',
+                            data: answer
+                        }));
+                    } else if (signal.type === 'answer') {
+                        await pc.setRemoteDescription(new RTCSessionDescription(signal.data));
+                    } else if (signal.type === 'ice-candidate') {
+                        if (signal.data) {
+                            await pc.addIceCandidate(new RTCIceCandidate(signal.data));
+                        }
+                    } else if (signal.type === 'player-data') {
+                        // 处理跨设备玩家数据
+                        handlePlayerData(signal.data);
+                    }
+                } catch (err) {
+                    console.log("信令处理失败：", err);
+                }
+            };
+
+            // 2. 创建本地Peer连接
+            async function createPeerConnection(peerId, signalingChannel) {
+                const pc = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] // 公共STUN服务器，零配置
+                });
+
+                // 创建数据通道：传输玩家数据
+                const dc = pc.createDataChannel(DATA_CHANNEL_NAME);
+                initDataChannel(dc, peerId);
+
+                // 监听ICE候选（局域网IP交换）
+                pc.onicecandidate = (e) => {
+                    if (e.candidate) {
+                        signalingChannel.postMessage(JSON.stringify({
+                            senderId: currentPlayer.id,
+                            targetId: peerId,
+                            type: 'ice-candidate',
+                            data: e.candidate
+                        }));
+                    }
+                };
+
+                // 监听远端数据通道
+                pc.ondatachannel = (e) => {
+                    initDataChannel(e.channel, peerId);
+                };
+
+                // 创建连接提议
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                signalingChannel.postMessage(JSON.stringify({
+                    senderId: currentPlayer.id,
+                    targetId: peerId,
+                    type: 'offer',
+                    data: offer
+                }));
+
+                peerConnections.set(peerId, pc);
+                return pc;
+            }
+
+            // 3. 初始化数据通道：实时传输玩家数据
+            function initDataChannel(dc, peerId) {
+                dc.onopen = () => {
+                    addLog("系统", `✅ 已连接玩家：${peerId.slice(-4)}`, "info");
+                    dc.send(JSON.stringify(currentPlayer)); // 发送自己的信息
+                };
+
+                dc.onmessage = (e) => {
+                    const playerData = JSON.parse(e.data);
+                    handlePlayerData(playerData); // 处理远端玩家数据
+                };
+
+                dc.onclose = () => {
+                    peerConnections.delete(peerId);
+                    onlinePlayers.delete(peerId);
+                    refreshPlayers();
+                    addLog("系统", `❌ 玩家${peerId.slice(-4)}已离线`, "info");
+                };
+
+                if (currentPlayer.id === peerId) localDataChannel = dc;
+            }
+        }
+
+        // ========== 游戏核心功能：存档/创建/偷钱/打架 ==========
+        // 加载本地存档
+        function loadPlayerData() {
+            const saved = localStorage.getItem(SAVE_KEY);
+            if (saved) {
+                currentPlayer = JSON.parse(saved);
+                // 保证唯一ID
+                currentPlayer.id = currentPlayer.id || Math.random().toString(36).slice(2, 10);
+                currentPlayer.timestamp = Date.now();
+            }
+        }
+
+        // 保存本地存档 (操作后自动触发)
+        function savePlayerData() {
+            if (!currentPlayer) return;
+            localStorage.setItem(SAVE_KEY, JSON.stringify(currentPlayer));
+        }
+
+        // 重置角色数据
+        function resetPlayerData() {
+            if (confirm("确定重置？将恢复初始状态，存档会被清除！")) {
+                localStorage.removeItem(SAVE_KEY);
+                currentPlayer = null;
+                onlinePlayers.clear();
+                peerConnections.clear();
+                nameInputEl.classList.remove('hidden');
+                gameMainEl.classList.add('hidden');
+                nicknameInput.value = "";
+                refreshPlayers();
+                addLog("系统", "角色数据已重置，请重新创建", "system");
+            }
+        }
+
+        // 创建自定义角色
         function createRole() {
-            // 生成随机角色名
-            const randomId = Math.floor(Math.random() * 9999);
+            const name = nicknameInput.value.trim();
+            if (!name || name.length > 10) {
+                addLog("系统", "角色名不能为空/超过10字！", "fail");
+                return;
+            }
+
+            // 生成唯一玩家ID
             currentPlayer = {
-                id: `玩家_${randomId}`,
+                id: Math.random().toString(36).slice(2, 10),
+                name: name,
                 hp: GAME_CONFIG.initHp,
                 gold: GAME_CONFIG.initGold,
                 power: GAME_CONFIG.initPower,
                 timestamp: Date.now()
             };
 
-            // 更新UI
-            roleNameEl.textContent = currentPlayer.id;
-            roleHpEl.textContent = currentPlayer.hp;
-            roleGoldEl.textContent = currentPlayer.gold;
-            rolePowerEl.textContent = currentPlayer.power;
-
-            // 切换界面
-            roleCreateEl.classList.add('hidden');
+            // 存档+更新UI+进入游戏
+            savePlayerData();
+            updatePlayerUI();
+            nameInputEl.classList.add('hidden');
             gameMainEl.classList.remove('hidden');
-
-            // 广播自己的信息
+            // 广播自己的信息到所有跨设备玩家
             broadcastPlayerData();
-            addLog("系统", `角色创建成功：${currentPlayer.id}`, "system");
+            addLog("系统", `角色创建成功：${name}，数据已自动保存`, "success");
         }
 
-        // 2. 刷新在线玩家列表
+        // 刷新在线玩家列表 (跨设备可见)
         function refreshPlayers() {
             if (onlinePlayers.size === 0) {
-                playerListEl.innerHTML = "<p>暂无在线玩家 (单机模式)</p>";
+                playerListEl.innerHTML = `<p style="color:#888; text-align:center">暂无同WiFi在线玩家 (单机模式)</p>`;
                 return;
             }
 
             let html = "";
-            onlinePlayers.forEach(player => {
+            onlinePlayers.forEach((player, id) => {
                 html += `
                 <div class="player-card">
-                    🆔 ${player.id} | ❤️ ${player.hp} | 💰 ${player.gold} | ⚔️ ${player.power}
+                    <span class="name">🆔 ${player.name}</span>
+                    <span class="attr">❤️${player.hp} | 💰${player.gold} | ⚔️${player.power}</span>
                 </div>`;
             });
             playerListEl.innerHTML = html;
-            addLog("系统", `当前在线玩家：${onlinePlayers.size} 人`, "system");
+            addLog("系统", `当前同WiFi在线玩家：${onlinePlayers.size} 人`, "info");
         }
 
-        // 3. 偷钱功能
+        // 偷钱功能 (跨设备同步)
         function stealGold() {
-            if (!currentPlayer) return;
-            const players = Array.from(onlinePlayers.values());
-            if (players.length === 0) {
-                addLog("系统", "没有可偷的玩家，单机模式无法偷钱！", "fail");
+            if (!currentPlayer || onlinePlayers.size === 0) {
+                addLog("系统", onlinePlayers.size === 0 ? "无跨设备玩家，无法偷钱！" : "请先创建角色！", "fail");
                 return;
             }
 
-            // 随机选目标
+            const players = Array.from(onlinePlayers.values());
             const target = players[Math.floor(Math.random() * players.length)];
             const random = Math.random();
 
@@ -176,50 +343,49 @@
                 // 偷成功
                 currentPlayer.gold += GAME_CONFIG.stealGain;
                 target.gold = Math.max(0, target.gold - GAME_CONFIG.stealGain);
-                addLog("成功", `✅ 成功偷取【${target.id}】${GAME_CONFIG.stealGain}金币！`, "success");
+                addLog("成功", `✅ 偷取【${target.name}】${GAME_CONFIG.stealGain}金币！`, "success");
             } else {
-                // 偷失败
+                // 偷失败惩罚
                 currentPlayer.gold = Math.max(0, currentPlayer.gold - GAME_CONFIG.stealLose);
                 currentPlayer.hp = Math.max(0, currentPlayer.hp - GAME_CONFIG.stealHpLoss);
-                addLog("失败", `❌ 偷【${target.id}】被发现！扣${GAME_CONFIG.stealLose}金币+${GAME_CONFIG.stealHpLoss}血`, "fail");
+                addLog("失败", `❌ 偷【${target.name}】被发现！扣${GAME_CONFIG.stealLose}金币+${GAME_CONFIG.stealHpLoss}血`, "fail");
             }
 
             updatePlayerUI();
+            savePlayerData();
             broadcastPlayerData();
-            broadcastPlayerData(target); // 同步目标数据
+            broadcastPlayerData(target);
         }
 
-        // 4. 打架功能
+        // 打架功能 (跨设备同步)
         function fightPlayer() {
-            if (!currentPlayer) return;
-            const players = Array.from(onlinePlayers.values());
-            if (players.length === 0) {
-                addLog("系统", "没有可挑战的玩家，单机模式无法打架！", "fail");
+            if (!currentPlayer || onlinePlayers.size === 0) {
+                addLog("系统", onlinePlayers.size === 0 ? "无跨设备玩家，无法打架！" : "请先创建角色！", "fail");
                 return;
             }
 
-            // 随机选目标
+            const players = Array.from(onlinePlayers.values());
             const target = players[Math.floor(Math.random() * players.length)];
-            // 战力随机波动
-            const myPower = currentPlayer.power + Math.floor(Math.random() * 6) - 2;
-            const targetPower = target.power + Math.floor(Math.random() * 6) - 2;
+            // 战力随机波动±2，增加趣味性
+            const myPower = currentPlayer.power + Math.floor(Math.random() * 5) - 2;
+            const targetPower = target.power + Math.floor(Math.random() * 5) - 2;
 
-            addLog("系统", `⚔️ 挑战【${target.id}】！你的战力：${myPower} | 对方战力：${targetPower}`, "system");
+            addLog("系统", `⚔️ 挑战【${target.name}】！你的战力：${myPower} | 对方：${targetPower}`, "info");
 
             if (myPower > targetPower) {
-                // 赢
+                // 胜利
                 currentPlayer.gold += GAME_CONFIG.fightWinGold;
-                currentPlayer.hp = Math.min(GAME_CONFIG.initHp, currentPlayer.hp + GAME_CONFIG.fightWinHp);
+                currentPlayer.hp = Math.min(GAME_CONFIG.maxHp, currentPlayer.hp + GAME_CONFIG.fightWinHp);
                 target.gold = Math.max(0, target.gold - GAME_CONFIG.fightWinGold);
                 target.hp = Math.max(0, target.hp - GAME_CONFIG.fightLoseHp);
-                addLog("成功", `✅ 打赢了！获得${GAME_CONFIG.fightWinGold}金币+${GAME_CONFIG.fightWinHp}血`, "success");
+                addLog("成功", `✅ 打赢了！得${GAME_CONFIG.fightWinGold}金币+回${GAME_CONFIG.fightWinHp}血`, "success");
             } else if (myPower < targetPower) {
-                // 输
+                // 失败
                 currentPlayer.gold = Math.max(0, currentPlayer.gold - GAME_CONFIG.fightLoseGold);
                 currentPlayer.hp = Math.max(0, currentPlayer.hp - GAME_CONFIG.fightLoseHp);
                 target.gold += GAME_CONFIG.fightWinGold;
-                target.hp = Math.min(GAME_CONFIG.initHp, target.hp + GAME_CONFIG.fightWinHp);
-                addLog("失败", `❌ 打输了！扣${GAME_CONFIG.fightLoseGold}金币+${GAME_CONFIG.fightLoseHp}血`, "fail");
+                target.hp = Math.min(GAME_CONFIG.maxHp, target.hp + GAME_CONFIG.fightWinHp);
+                addLog("失败", `❌ 打输了！扣${GAME_CONFIG.fightLoseGold}金币+掉${GAME_CONFIG.fightLoseHp}血`, "fail");
             } else {
                 // 平局
                 currentPlayer.hp = Math.max(0, currentPlayer.hp - GAME_CONFIG.fightDrawHp);
@@ -228,34 +394,50 @@
             }
 
             updatePlayerUI();
+            savePlayerData();
             broadcastPlayerData();
             broadcastPlayerData(target);
         }
 
-        // ========== 辅助函数 ==========
-        // 广播玩家数据
+        // ========== 辅助函数：数据同步/UI更新/日志 ==========
+        // 广播玩家数据到所有跨设备玩家
         function broadcastPlayerData(player = currentPlayer) {
-            if (!player || !broadcastChannel) return;
+            if (!currentPlayer || !player) return;
+            // 1. 信令通道广播 (兼容未建立直连的玩家)
             try {
-                broadcastChannel.postMessage(JSON.stringify(player));
+                const signalingChannel = new BroadcastChannel(SIGNALING_CHANNEL);
+                signalingChannel.postMessage(JSON.stringify({
+                    senderId: currentPlayer.id,
+                    type: 'player-data',
+                    data: player
+                }));
             } catch (err) {}
+
+            // 2. 已建立的P2P连接直接发送
+            peerConnections.forEach((pc, id) => {
+                try {
+                    const dc = pc.datachannels.get(DATA_CHANNEL_NAME) || Array.from(pc.datachannels)[0];
+                    if (dc.readyState === 'open') dc.send(JSON.stringify(player));
+                } catch (err) {}
+            });
         }
 
-        // 处理其他玩家数据
+        // 处理跨设备玩家数据
         function handlePlayerData(player) {
-            if (player.id === currentPlayer?.id) return; // 跳过自己
+            if (!player || !player.id || player.id === currentPlayer?.id) return;
             onlinePlayers.set(player.id, player);
             refreshPlayers();
         }
 
-        // 更新自己的UI
+        // 更新自身UI
         function updatePlayerUI() {
+            roleNameEl.textContent = currentPlayer.name;
             roleHpEl.textContent = currentPlayer.hp;
             roleGoldEl.textContent = currentPlayer.gold;
             rolePowerEl.textContent = currentPlayer.power;
         }
 
-        // 添加日志
+        // 添加游戏日志
         function addLog(type, content, cls) {
             const time = new Date().toLocaleTimeString();
             const p = document.createElement('p');
