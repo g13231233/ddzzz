@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金币点击游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth-container">
+        <h2>登录</h2>
+        <input type="email" id="email" placeholder="邮箱">
+        <input type="password" id="password" placeholder="密码">
+        <button id="login-btn">登录</button>
+        <button id="register-btn">注册</button>
+        <p id="auth-message"></p>
+    </div>
+
+    <div id="name-container" style="display: none;">
+        <h2>起名字</h2>
+        <input type="text" id="name-input" placeholder="输入你的名字">
+        <button id="name-submit-btn">确定</button>
+        <p id="name-message"></p>
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <h1>金币点击游戏</h1>
+        <p>金币: <span id="coin-count">0</span></p>
+        <button id="click-btn">点击获得金币</button>
+        <h2>排行榜</h2>
+        <ul id="leaderboard"></ul>
+        <button id="logout-btn">登出</button>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
