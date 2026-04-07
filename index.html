@@ -3,16 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>星际拾荒者 - 多人在线游戏</title>
-  <!-- 引入 Firebase -->
+  <title>星际拾荒者 - 多人在线</title>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome -->
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  
-  <!-- Tailwind 配置 -->
   <script>
     tailwind.config = {
       theme: {
@@ -25,47 +20,31 @@
             neutral: '#161B26',
           },
           fontFamily: {
-            gaming: ['Orbitron', 'sans-serif'],
+            gaming: ['sans-serif']
           },
         },
       }
     }
   </script>
-
   <style type="text/tailwindcss">
     @layer utilities {
-      .content-auto {
-        content-visibility: auto;
-      }
-      .game-glow {
-        filter: drop-shadow(0 0 8px rgba(0, 209, 255, 0.6));
-      }
-      .player-glow {
-        filter: drop-shadow(0 0 6px currentColor);
-      }
-      .neon-border {
-        box-shadow: 0 0 12px rgba(0, 209, 255, 0.4), inset 0 0 12px rgba(0, 209, 255, 0.1);
-      }
+      .game-glow { filter: drop-shadow(0 0 8px rgba(0,209,255,0.6)); }
+      .player-glow { filter: drop-shadow(0 0 6px currentColor); }
+      .neon-border { box-shadow: 0 0 12px rgba(0,209,255,0.4); }
     }
   </style>
-
-  <!-- 字体 -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body class="bg-dark text-light font-gaming overflow-hidden">
-  <!-- 游戏容器 -->
   <div class="relative w-screen h-screen flex flex-col">
-    <!-- 顶部导航栏 -->
-    <header class="w-full h-16 bg-neutral/80 backdrop-blur-md border-b border-primary/30 flex items-center justify-between px-4 md:px-8">
-      <div class="flex items-center gap-3">
+    <header class="h-16 bg-neutral/80 backdrop-blur-md border-b border-primary/30 flex items-center justify-between px-4">
+      <div class="flex items-center gap-2">
         <i class="fa fa-rocket text-primary text-2xl game-glow"></i>
-        <h1 class="text-xl md:text-2xl font-bold text-primary">星际拾荒者</h1>
+        <h1 class="text-xl font-bold text-primary">星际拾荒者</h1>
       </div>
       <div class="flex items-center gap-4">
-        <div class="hidden md:flex items-center gap-2">
+        <div class="flex items-center gap-2">
           <i class="fa fa-user-circle-o text-secondary"></i>
-          <span id="playerNameDisplay" class="text-sm"></span>
+          <span id="playerNameDisplay">-</span>
         </div>
         <div class="flex items-center gap-2">
           <i class="fa fa-star text-yellow-400"></i>
@@ -74,271 +53,179 @@
       </div>
     </header>
 
-    <!-- 游戏主区域 -->
     <main class="flex-1 flex flex-col md:flex-row gap-4 p-4">
-      <!-- 左侧游戏画布 -->
       <div class="flex-1 relative bg-neutral/60 rounded-lg neon-border overflow-hidden">
         <canvas id="gameCanvas" class="w-full h-full"></canvas>
-        
-        <!-- 移动端控制按钮 -->
-        <div class="absolute bottom-4 left-4 md:hidden grid grid-cols-3 gap-2">
-          <button class="col-start-2 w-16 h-16 bg-primary/20 border border-primary/50 rounded-full text-primary flex items-center justify-center" id="upBtn">
-            <i class="fa fa-chevron-up"></i>
-          </button>
-          <button class="w-16 h-16 bg-primary/20 border border-primary/50 rounded-full text-primary flex items-center justify-center" id="leftBtn">
-            <i class="fa fa-chevron-left"></i>
-          </button>
-          <button class="w-16 h-16 bg-primary/20 border border-primary/50 rounded-full text-primary flex items-center justify-center" id="downBtn">
-            <i class="fa fa-chevron-down"></i>
-          </button>
-          <button class="w-16 h-16 bg-primary/20 border border-primary/50 rounded-full text-primary flex items-center justify-center" id="rightBtn">
-            <i class="fa fa-chevron-right"></i>
-          </button>
-        </div>
       </div>
 
-      <!-- 右侧排行榜 -->
       <div class="w-full md:w-72 h-80 md:h-auto bg-neutral/60 rounded-lg neon-border p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-bold text-primary flex items-center gap-2">
-            <i class="fa fa-trophy text-yellow-400"></i>
-            金币排行榜
-          </h2>
-          <span id="onlineCount" class="text-xs bg-secondary/20 text-secondary px-2 py-1 rounded">在线: 0</span>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-primary font-bold"><i class="fa fa-trophy text-yellow-400"></i> 排行榜</h2>
+          <span id="onlineCount" class="text-xs text-secondary">在线：0</span>
         </div>
-        <div id="leaderboard" class="space-y-2 overflow-y-auto h-[calc(100%-40px)]">
-          <p class="text-sm text-gray-400 text-center py-4">加载中...</p>
-        </div>
+        <div id="leaderboard" class="space-y-1 overflow-y-auto h-[calc(100%-30px)]">加载中...</div>
       </div>
     </main>
   </div>
 
   <script>
-    // ====================== 1. Firebase 配置 ======================
+    // 请换成你自己的 Firebase 配置
     const firebaseConfig = {
-       apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
-       authDomain: "durango110.firebaseapp.com",
-       projectId: "durango110",
-       storageBucket: "durango110.firebasestorage.app",
-       messagingSenderId: "674394866246",
-       appId: "1:674394866246:web:72ecd92fed2e703f124047"
+      apiKey: "AIzaSyAEr2xxxxxxxxxxxxxxxxxxxxxx",
+      authDomain: "xxxx.firebaseapp.com",
+      databaseURL: "https://xxxx-default-rtdb.firebaseio.com",
+      projectId: "xxxx",
+      storageBucket: "xxxx.appspot.com",
+      messagingSenderId: "xxxxxxxx",
+      appId: "1:xxxxxxx:web:xxxxxxx"
     };
 
-    // 初始化 Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const playersRef = db.ref("players");
 
-    // ====================== 2. 游戏全局变量 ======================
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-    let canvasWidth, canvasHeight;
-    
-    // 玩家数据
-    let myId = Math.random().toString(36).substr(2, 8);
-    let myName = "玩家" + myId.substr(0, 4);
-    let myPlayer = {
-      x: Math.random() * 800 + 100,
-      y: Math.random() * 500 + 100,
+
+    let myId = Math.random().toString(36).slice(2, 10);
+    let myName = "玩家" + myId.slice(0,4);
+    let myData = {
+      x: 200,
+      y: 200,
       coins: 0,
       name: myName,
-      color: `hsl(${Math.random() * 360}, 100%, 65%)`,
+      color: `hsl(${Math.random()*360},100%,65%)`,
       online: true
     };
 
-    // 所有玩家 & 金币
-    let allPlayers = {};
+    let players = {};
     let coins = [];
-    const coinCount = 30;
+    const keys = {};
 
-    // 移动控制
-    const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
-    
-    // ====================== 3. 初始化 ======================
-    function init() {
-      resizeCanvas();
-      generateCoins();
-      syncMyPlayer();
-      listenPlayers();
-      gameLoop();
-      
-      // 监听窗口大小变化
-      window.addEventListener("resize", resizeCanvas);
-      
-      // 键盘控制
-      window.addEventListener("keydown", (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
-      window.addEventListener("keyup", (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
-      
-      // 移动端控制
-      document.getElementById("upBtn").addEventListener("touchstart", () => keys.w = true);
-      document.getElementById("upBtn").addEventListener("touchend", () => keys.w = false);
-      document.getElementById("downBtn").addEventListener("touchstart", () => keys.s = true);
-      document.getElementById("downBtn").addEventListener("touchend", () => keys.s = false);
-      document.getElementById("leftBtn").addEventListener("touchstart", () => keys.a = true);
-      document.getElementById("leftBtn").addEventListener("touchend", () => keys.a = false);
-      document.getElementById("rightBtn").addEventListener("touchstart", () => keys.d = true);
-      document.getElementById("rightBtn").addEventListener("touchend", () => keys.d = false);
+    // 画布自适应
+    function resize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
     }
+    window.addEventListener('resize', resize);
 
-    // 画布适配
-    function resizeCanvas() {
-      canvasWidth = canvas.offsetWidth;
-      canvasHeight = canvas.offsetHeight;
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-    }
-
-    // ====================== 4. 数据同步 ======================
-    // 同步自己的玩家数据
-    function syncMyPlayer() {
-      const myRef = playersRef.child(myId);
-      myRef.set(myPlayer);
-      myRef.onDisconnect().update({ online: false });
-      document.getElementById("playerNameDisplay").textContent = myName;
-    }
-
-    // 监听所有玩家
-    function listenPlayers() {
-      playersRef.on("value", (snapshot) => {
-        allPlayers = snapshot.val() || {};
-        updateLeaderboard();
-        document.getElementById("onlineCount").textContent = "在线: " + Object.values(allPlayers).filter(p => p.online).length;
-      });
-    }
-
-    // 更新排行榜
-    function updateLeaderboard() {
-      const board = document.getElementById("leaderboard");
-      const onlinePlayers = Object.values(allPlayers).filter(p => p.online).sort((a, b) => b.coins - a.coins);
-      
-      board.innerHTML = "";
-      onlinePlayers.forEach((p, index) => {
-        const item = document.createElement("div");
-        item.className = `flex justify-between items-center p-2 rounded ${p.name === myName ? 'bg-primary/10 border-l-2 border-primary' : ''}`;
-        item.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full flex items-center justify-center ${index < 3 ? 'text-yellow-400' : 'text-gray-400'} text-xs">${index + 1}</span>
-            <span class="truncate max-w-[120px]">${p.name}</span>
-          </div>
-          <span class="font-bold text-yellow-300">${p.coins}</span>
-        `;
-        board.appendChild(item);
-      });
-    }
-
-    // ====================== 5. 游戏逻辑 ======================
     // 生成金币
-    function generateCoins() {
-      for(let i=0; i<coinCount; i++) {
+    function genCoins() {
+      coins = [];
+      for(let i=0;i<40;i++) {
         coins.push({
-          x: Math.random() * (canvasWidth - 40) + 20,
-          y: Math.random() * (canvasHeight - 40) + 20,
-          collected: false
+          x: Math.random()*(canvas.width-40)+20,
+          y: Math.random()*(canvas.height-40)+20
         });
       }
     }
 
-    // 移动玩家
-    function movePlayer() {
-      const speed = 5;
-      if(keys.w || keys.ArrowUp) myPlayer.y = Math.max(20, myPlayer.y - speed);
-      if(keys.s || keys.ArrowDown) myPlayer.y = Math.min(canvasHeight - 20, myPlayer.y + speed);
-      if(keys.a || keys.ArrowLeft) myPlayer.x = Math.max(20, myPlayer.x - speed);
-      if(keys.d || keys.ArrowRight) myPlayer.x = Math.min(canvasWidth - 20, myPlayer.x + speed);
-      
-      // 检测拾荒
-      checkCoinCollect();
-      // 同步数据
-      syncMyPlayer();
-      document.getElementById("myCoin").textContent = myPlayer.coins;
-    }
+    // 移动
+    function updatePlayer() {
+      const spd = 4;
+      if(keys.ArrowUp||keys.w) myData.y = Math.max(15, myData.y-spd);
+      if(keys.ArrowDown||keys.s) myData.y = Math.min(canvas.height-15, myData.y+spd);
+      if(keys.ArrowLeft||keys.a) myData.x = Math.max(15, myData.x-spd);
+      if(keys.ArrowRight||keys.d) myData.x = Math.min(canvas.width-15, myData.x+spd);
 
-    // 检测收集金币
-    function checkCoinCollect() {
-      coins.forEach(coin => {
-        if(!coin.collected) {
-          const dx = myPlayer.x - coin.x;
-          const dy = myPlayer.y - coin.y;
-          const distance = Math.sqrt(dx*dx + dy*dy);
-          
-          if(distance < 30) {
-            coin.collected = true;
-            myPlayer.coins += 1;
-            // 生成新金币
-            setTimeout(() => {
-              coin.x = Math.random() * (canvasWidth - 40) + 20;
-              coin.y = Math.random() * (canvasHeight - 40) + 20;
-              coin.collected = false;
-            }, 1000);
-          }
+      // 吃金币
+      coins.forEach((c,i)=>{
+        const dx = myData.x - c.x;
+        const dy = myData.y - c.y;
+       if(Math.hypot(dx,dy) < 25) {
+          myData.coins++;
+          coins.splice(i,1);
+          setTimeout(()=>{
+            coins.push({
+              x:Math.random()*(canvas.width-40)+20,
+              y:Math.random()*(canvas.height-40)+20
+            });
+          },800);
         }
       });
     }
 
-    // ====================== 6. 渲染 ======================
-    // 渲染游戏
+    // 渲染
     function render() {
-      // 清空画布
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      
-      // 绘制背景网格
-      ctx.strokeStyle = "rgba(0, 209, 255, 0.1)";
-      ctx.lineWidth = 1;
-      for(let i=20; i<canvasWidth; i+=40) {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // 网格
+      ctx.strokeStyle = "rgba(0,209,255,0.08)";
+      for(let i=40;i<canvas.width;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,canvas.height);ctx.stroke();}
+      for(let i=40;i<canvas.height;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(canvas.width,i);ctx.stroke();}
+      // 金币
+      coins.forEach(c=>{
         ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvasHeight);
-        ctx.stroke();
-      }
-      for(let i=20; i<canvasHeight; i+=40) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvasWidth, i);
-        ctx.stroke();
-      }
-
-      // 绘制金币
-      coins.forEach(coin => {
-        if(!coin.collected) {
-          ctx.beginPath();
-          ctx.arc(coin.x, coin.y, 10, 0, Math.PI * 2);
-          ctx.fillStyle = "#FFD700";
-          ctx.shadowColor = "#FFD700";
-          ctx.shadowBlur = 15;
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
+        ctx.arc(c.x,c.y,9,0,Math.PI*2);
+        ctx.fillStyle = "#ffdf40";
+        ctx.shadowColor = "#ffdf40";
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur=0;
       });
-
-      // 绘制所有在线玩家
-      Object.entries(allPlayers).forEach(([id, player]) => {
-        if(!player.online) return;
-        
+      // 玩家
+      Object.values(players).forEach(p=>{
+        if(!p.online) return;
         ctx.beginPath();
-        ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
-        ctx.fillStyle = player.color;
-        ctx.shadowColor = player.color;
+        ctx.arc(p.x,p.y,16,0,Math.PI*2);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
         ctx.shadowBlur = 10;
         ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        // 玩家名称
-        ctx.fillStyle = "#fff";
-        ctx.font = "12px Orbitron";
-        ctx.textAlign = "center";
-        ctx.fillText(player.name, player.x, player.y + 35);
+        ctx.shadowBlur=0;
+        ctx.fillStyle="#fff";
+        ctx.font="12px sans-serif";
+        ctx.textAlign="center";
+        ctx.fillText(p.name,p.x,p.y+30);
+      });
+    }
+
+    // 同步到 Firebase
+    function sync() {
+      playersRef.child(myId).set(myData);
+      document.getElementById("myCoin").textContent = myData.coins;
+      document.getElementById("playerNameDisplay").textContent = myData.name;
+    }
+
+    // 监听所有玩家
+    playersRef.on("value",snap=>{
+      players = snap.val()||{};
+      updateBoard();
+    });
+
+    // 排行榜
+    function updateBoard() {
+      const list = Object.values(players).filter(p=>p.online).sort((a,b)=>b.coins-a.coins);
+      document.getElementById("onlineCount").textContent = "在线："+list.length;
+      const dom = document.getElementById("leaderboard");
+      dom.innerHTML = "";
+      list.forEach((p,i)=>{
+        const div = document.createElement("div");
+        div.className="flex justify-between px-2 py-1.5 rounded text-sm";
+        if(p.name==myData.name) div.style.background="rgba(0,209,255,0.1)";
+        div.innerHTML = `<span>#${i+1} ${p.name}</span><span class="text-yellow-300">${p.coins}</span>`;
+        dom.appendChild(div);
       });
     }
 
     // 游戏循环
-    function gameLoop() {
-      movePlayer();
+    function loop() {
+      updatePlayer();
       render();
-      requestAnimationFrame(gameLoop);
+      sync();
+      requestAnimationFrame(loop);
     }
 
-    // 启动游戏
-    window.onload = init;
+    // 按键
+    window.addEventListener("keydown",e=>keys[e.key]=true);
+    window.addEventListener("keyup",e=>keys[e.key]=false);
+
+    // 启动
+    resize();
+    genCoins();
+    loop();
+
+    // 断开时设为离线
+    playersRef.child(myId).onDisconnect().update({online:false});
   </script>
 </body>
 </html>
