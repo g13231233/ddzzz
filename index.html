@@ -1,231 +1,226 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>星际拾荒者 - 多人在线</title>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#00D1FF',
-            secondary: '#FF00A8',
-            dark: '#0A0E17',
-            light: '#E1E7F5',
-            neutral: '#161B26',
-          },
-          fontFamily: {
-            gaming: ['sans-serif']
-          },
-        },
-      }
-    }
-  </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .game-glow { filter: drop-shadow(0 0 8px rgba(0,209,255,0.6)); }
-      .player-glow { filter: drop-shadow(0 0 6px currentColor); }
-      .neon-border { box-shadow: 0 0 12px rgba(0,209,255,0.4); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字拾荒大冒险</title>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { max-width: 600px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .auth, .name-form, .game { display: none; }
+        .active { display: block; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ddd; font-size: 16px; }
+        button { background: #2c3e50; color: white; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #95a5a6; }
+        .item { padding: 8px; margin: 4px 0; border-radius: 4px; color: white; }
+        .common { background: #95a5a6; }
+        .uncommon { background: #2ecc71; }
+        .rare { background: #3498db; }
+        .epic { background: #9b59b6; }
+        .legendary { background: #f39c12; }
+        .rank-item { padding: 8px; border-bottom: 1px solid #eee; }
+    </style>
 </head>
-<body class="bg-dark text-light font-gaming overflow-hidden">
-  <div class="relative w-screen h-screen flex flex-col">
-    <header class="h-16 bg-neutral/80 backdrop-blur-md border-b border-primary/30 flex items-center justify-between px-4">
-      <div class="flex items-center gap-2">
-        <i class="fa fa-rocket text-primary text-2xl game-glow"></i>
-        <h1 class="text-xl font-bold text-primary">星际拾荒者</h1>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <i class="fa fa-user-circle-o text-secondary"></i>
-          <span id="playerNameDisplay">-</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <i class="fa fa-star text-yellow-400"></i>
-          <span id="myCoin" class="font-bold text-yellow-300">0</span>
-        </div>
-      </div>
-    </header>
+<body>
+<div class="container">
+    <h1>📜 文字拾荒大冒险</h1>
 
-    <main class="flex-1 flex flex-col md:flex-row gap-4 p-4">
-      <div class="flex-1 relative bg-neutral/60 rounded-lg neon-border overflow-hidden">
-        <canvas id="gameCanvas" class="w-full h-full"></canvas>
-      </div>
+    <!-- 登录注册 -->
+    <div class="auth active" id="authSection">
+        <input id="email" placeholder="邮箱" type="email">
+        <input id="password" placeholder="密码" type="password">
+        <button onclick="register()">注册</button>
+        <button onclick="login()">登录</button>
+    </div>
 
-      <div class="w-full md:w-72 h-80 md:h-auto bg-neutral/60 rounded-lg neon-border p-4">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-primary font-bold"><i class="fa fa-trophy text-yellow-400"></i> 排行榜</h2>
-          <span id="onlineCount" class="text-xs text-secondary">在线：0</span>
-        </div>
-        <div id="leaderboard" class="space-y-1 overflow-y-auto h-[calc(100%-30px)]">加载中...</div>
-      </div>
-    </main>
-  </div>
+    <!-- 创建角色名 -->
+    <div class="name-form" id="nameSection">
+        <input id="nickname" placeholder="输入你的角色名">
+        <button onclick="setNickname()">确认创建</button>
+    </div>
 
-  <script>
-    // 请换成你自己的 Firebase 配置
-    const firebaseConfig = {
-      apiKey: "AIzaSyAEr2xxxxxxxxxxxxxxxxxxxxxx",
-      authDomain: "xxxx.firebaseapp.com",
-      databaseURL: "https://xxxx-default-rtdb.firebaseio.com",
-      projectId: "xxxx",
-      storageBucket: "xxxx.appspot.com",
-      messagingSenderId: "xxxxxxxx",
-      appId: "1:xxxxxxx:web:xxxxxxx"
-    };
+    <!-- 游戏主界面 -->
+    <div class="game" id="gameSection">
+        <h3>玩家：<span id="playerName"></span></h3>
+        <h3>金币：<span id="gold"></span></h3>
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const playersRef = db.ref("players");
+        <button onclick="gather()">🧺 开始拾荒</button>
+        <button onclick="sellAll()">💰 一键出售所有物品</button>
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+        <h4>背包：</h4>
+        <div id="inventory"></div>
 
-    let myId = Math.random().toString(36).slice(2, 10);
-    let myName = "玩家" + myId.slice(0,4);
-    let myData = {
-      x: 200,
-      y: 200,
-      coins: 0,
-      name: myName,
-      color: `hsl(${Math.random()*360},100%,65%)`,
-      online: true
-    };
+        <h4>🏆 金币排行榜</h4>
+        <div id="rankList"></div>
+    </div>
+</div>
 
-    let players = {};
-    let coins = [];
-    const keys = {};
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    // 画布自适应
-    function resize() {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+<script>
+// ==============================================
+// ✅ 在这里替换成你的 Firebase 配置
+// ==============================================
+const firebaseConfig = {
+  apiKey: "你的apiKey",
+  authDomain: "你的authDomain",
+  projectId: "你的projectId",
+  storageBucket: "你的storageBucket",
+  messagingSenderId: "你的messagingSenderId",
+  appId: "你的appId"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// 物品池（5种稀有度）
+const items = [
+  { name: "破布", rarity: "普通", value: 1, class: "common" },
+  { name: "空瓶", rarity: "普通", value: 1, class: "common" },
+  { name: "铁片", rarity: "普通", value: 2, class: "common" },
+  { name: "旧工具", rarity: "稀有", value: 5, class: "rare" },
+  { name: "急救包", rarity: "稀有", value: 6, class: "rare" },
+  { name: "能量饮料", rarity: "稀有", value: 7, class: "rare" },
+  { name: "军用罐头", rarity: "史诗", value: 15, class: "epic" },
+  { name: "零件包", rarity: "史诗", value: 18, class: "epic" },
+  { name: "神秘卡片", rarity: "传奇", value: 50, class: "legendary" }
+];
+
+// 监听登录状态
+auth.onAuthStateChanged(user => {
+  if (user) {
+    checkUserHasName(user.uid);
+  } else {
+    showSection("auth");
+  }
+});
+
+// 注册
+function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  auth.createUserWithEmailAndPassword(email, password).catch(e => alert(e.message));
+}
+
+// 登录
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email, password).catch(e => alert(e.message));
+}
+
+// 检查是否已设置角色名
+function checkUserHasName(uid) {
+  db.collection("players").doc(uid).get().then(doc => {
+    if (doc.exists && doc.data().nickname) {
+      startGame(doc.data());
+    } else {
+      showSection("name");
     }
-    window.addEventListener('resize', resize);
+  });
+}
 
-    // 生成金币
-    function genCoins() {
-      coins = [];
-      for(let i=0;i<40;i++) {
-        coins.push({
-          x: Math.random()*(canvas.width-40)+20,
-          y: Math.random()*(canvas.height-40)+20
-        });
-      }
+// 设置角色名
+function setNickname() {
+  const nickname = document.getElementById("nickname").value.trim();
+  if (!nickname || nickname.length < 2) {
+    alert("名字至少2个字符");
+    return;
+  }
+  const uid = auth.currentUser.uid;
+  db.collection("players").doc(uid).set({
+    nickname: nickname,
+    gold: 0,
+    inventory: []
+  }).then(() => startGame({ nickname, gold: 0, inventory: [] }));
+}
+
+// 进入游戏
+function startGame(player) {
+  showSection("game");
+  document.getElementById("playerName").innerText = player.nickname;
+  updateGold(player.gold);
+  renderInventory(player.inventory);
+  listenRank();
+}
+
+// 拾荒
+function gather() {
+  const uid = auth.currentUser.uid;
+  const randomItem = items[Math.floor(Math.random() * items.length)];
+
+  db.collection("players").doc(uid).update({
+    inventory: firebase.firestore.FieldValue.arrayUnion(randomItem)
+  }).then(() => {
+    alert(`拾荒成功！获得：${randomItem.name}（${randomItem.rarity}）`);
+  });
+}
+
+// 一键出售
+function sellAll() {
+  const uid = auth.currentUser.uid;
+  db.collection("players").doc(uid).get().then(doc => {
+    const player = doc.data();
+    if (!player.inventory || player.inventory.length === 0) {
+      alert("背包是空的！");
+      return;
     }
+    const total = player.inventory.reduce((sum, item) => sum + item.value, 0);
+    db.collection("players").doc(uid).update({
+      gold: player.gold + total,
+      inventory: []
+    }).then(() => alert(`出售成功！获得 ${total} 金币`));
+  });
+}
 
-    // 移动
-    function updatePlayer() {
-      const spd = 4;
-      if(keys.ArrowUp||keys.w) myData.y = Math.max(15, myData.y-spd);
-      if(keys.ArrowDown||keys.s) myData.y = Math.min(canvas.height-15, myData.y+spd);
-      if(keys.ArrowLeft||keys.a) myData.x = Math.max(15, myData.x-spd);
-      if(keys.ArrowRight||keys.d) myData.x = Math.min(canvas.width-15, myData.x+spd);
+// 渲染背包
+function renderInventory(inventory) {
+  const el = document.getElementById("inventory");
+  el.innerHTML = inventory.map(i =>
+    `<div class="item ${i.class}">${i.name} | ${i.rarity} | 价值 ${i.value}</div>`
+  ).join("");
+}
 
-      // 吃金币
-      coins.forEach((c,i)=>{
-        const dx = myData.x - c.x;
-        const dy = myData.y - c.y;
-       if(Math.hypot(dx,dy) < 25) {
-          myData.coins++;
-          coins.splice(i,1);
-          setTimeout(()=>{
-            coins.push({
-              x:Math.random()*(canvas.width-40)+20,
-              y:Math.random()*(canvas.height-40)+20
-            });
-          },800);
-        }
-      });
-    }
+// 更新金币
+function updateGold(gold) {
+  document.getElementById("gold").innerText = gold;
+}
 
-    // 渲染
-    function render() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      // 网格
-      ctx.strokeStyle = "rgba(0,209,255,0.08)";
-      for(let i=40;i<canvas.width;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,canvas.height);ctx.stroke();}
-      for(let i=40;i<canvas.height;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(canvas.width,i);ctx.stroke();}
-      // 金币
-      coins.forEach(c=>{
-        ctx.beginPath();
-        ctx.arc(c.x,c.y,9,0,Math.PI*2);
-        ctx.fillStyle = "#ffdf40";
-        ctx.shadowColor = "#ffdf40";
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.shadowBlur=0;
-      });
-      // 玩家
-      Object.values(players).forEach(p=>{
-        if(!p.online) return;
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,16,0,Math.PI*2);
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.shadowBlur=0;
-        ctx.fillStyle="#fff";
-        ctx.font="12px sans-serif";
-        ctx.textAlign="center";
-        ctx.fillText(p.name,p.x,p.y+30);
-      });
-    }
-
-    // 同步到 Firebase
-    function sync() {
-      playersRef.child(myId).set(myData);
-      document.getElementById("myCoin").textContent = myData.coins;
-      document.getElementById("playerNameDisplay").textContent = myData.name;
-    }
-
-    // 监听所有玩家
-    playersRef.on("value",snap=>{
-      players = snap.val()||{};
-      updateBoard();
+// 实时排行榜
+function listenRank() {
+  db.collection("players").orderBy("gold", "desc").limit(20).onSnapshot(snap => {
+    const list = document.getElementById("rankList");
+    list.innerHTML = "";
+    snap.forEach((doc, i) => {
+      const p = doc.data();
+      list.innerHTML += `<div class="rank-item">${i+1}. ${p.nickname} - ${p.gold} 金币</div>`;
     });
+  });
+}
 
-    // 排行榜
-    function updateBoard() {
-      const list = Object.values(players).filter(p=>p.online).sort((a,b)=>b.coins-a.coins);
-      document.getElementById("onlineCount").textContent = "在线："+list.length;
-      const dom = document.getElementById("leaderboard");
-      dom.innerHTML = "";
-      list.forEach((p,i)=>{
-        const div = document.createElement("div");
-        div.className="flex justify-between px-2 py-1.5 rounded text-sm";
-        if(p.name==myData.name) div.style.background="rgba(0,209,255,0.1)";
-        div.innerHTML = `<span>#${i+1} ${p.name}</span><span class="text-yellow-300">${p.coins}</span>`;
-        dom.appendChild(div);
-      });
-    }
+// 切换界面
+function showSection(section) {
+  document.querySelectorAll(".auth, .name-form, .game").forEach(el => el.classList.remove("active"));
+  document.getElementById(section + "Section").classList.add("active");
+}
 
-    // 游戏循环
-    function loop() {
-      updatePlayer();
-      render();
-      sync();
-      requestAnimationFrame(loop);
-    }
-
-    // 按键
-    window.addEventListener("keydown",e=>keys[e.key]=true);
-    window.addEventListener("keyup",e=>keys[e.key]=false);
-
-    // 启动
-    resize();
-    genCoins();
-    loop();
-
-    // 断开时设为离线
-    playersRef.child(myId).onDisconnect().update({online:false});
-  </script>
+// 实时监听自身数据
+auth.onAuthStateChanged(user => {
+  if (user) {
+    db.collection("players").doc(user.uid).onSnapshot(doc => {
+      if (doc.exists) {
+        const p = doc.data();
+        updateGold(p.gold);
+        renderInventory(p.inventory || []);
+      }
+    });
+  }
+});
+</script>
 </body>
 </html>
