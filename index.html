@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>社区论坛 - 发帖与互动</title>
-    <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- 可选: 简易样式美化 -->
     <style>
         * {
             margin: 0;
@@ -22,21 +20,12 @@
             max-width: 900px;
             margin: 0 auto;
         }
-        /* 卡片样式 */
         .card {
             background: white;
             border-radius: 24px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
             padding: 24px;
             margin-bottom: 24px;
-            transition: all 0.2s;
-        }
-        .auth-card, .post-form-card, .posts-header {
-            background: white;
-        }
-        h1, h2 {
-            font-weight: 600;
-            letter-spacing: -0.3px;
         }
         h1 {
             font-size: 1.8rem;
@@ -67,7 +56,6 @@
             border-radius: 16px;
             font-size: 0.95rem;
             transition: 0.2s;
-            background-color: #fff;
         }
         input:focus, textarea:focus {
             outline: none;
@@ -84,7 +72,6 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         button:hover {
             background: #2563eb;
@@ -100,7 +87,6 @@
             background: transparent;
             border: 1px solid #3b82f6;
             color: #3b82f6;
-            box-shadow: none;
         }
         button.outline:hover {
             background: #eff6ff;
@@ -132,6 +118,13 @@
             border-radius: 40px;
             font-size: 0.8rem;
         }
+        .info-msg {
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
         .user-info {
             display: flex;
             justify-content: space-between;
@@ -150,9 +143,7 @@
             border-radius: 20px;
             padding: 18px;
             margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #eef2f6;
-            transition: 0.1s;
         }
         .post-title {
             font-size: 1.25rem;
@@ -183,9 +174,6 @@
             background: #f9fafb;
             border-radius: 24px;
         }
-        hr {
-            margin: 12px 0;
-        }
         .flex-row {
             display: flex;
             gap: 12px;
@@ -199,6 +187,28 @@
             padding: 4px 12px;
             font-size: 0.7rem;
             font-weight: 500;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        .setup-guide {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin-top: 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        .setup-guide pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 0.75rem;
         }
         @media (max-width: 640px) {
             .card {
@@ -216,146 +226,207 @@
 </head>
 <body>
 <div class="container">
-    <!-- 动态视图: 未登录显示登录/注册模块; 登录后显示发帖和帖子列表 -->
     <div id="app">
-        <!-- 此处由js动态渲染 -->
-        <div style="text-align: center; padding: 50px;">加载中...</div>
+        <div class="loading-spinner">
+            <div>🔄 正在连接服务器...</div>
+            <div style="font-size: 0.85rem; margin-top: 12px; color: #9ca3af;">首次加载可能需要几秒钟</div>
+        </div>
     </div>
 </div>
 
 <script>
-    // ---------- 1. 初始化 Supabase 客户端 ----------
+    // Supabase 配置
     const SUPABASE_URL = 'https://eupvdbmvfqiuyverflys.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1cHZkYm12ZnFpdXl2ZXJmbHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTQyNjIsImV4cCI6MjA5MTIzMDI2Mn0._IqpB-zLhBZD5fRlnSVOaWjY3MCu2jYlRzexew8bgT0';
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ---------- 全局状态 ----------
-    let currentSession = null;     // 存储用户session
-    let postsList = [];            // 帖子数组
-    let authMode = 'login';        // 'login' 或 'register'
-
-    // DOM 元素挂载点
+    
+    // 全局状态
+    let currentSession = null;
+    let postsList = [];
+    let authMode = 'login';
+    let isInitialized = false;
+    let dbCheckComplete = false;
+    let tableExists = true;
+    
     const appContainer = document.getElementById('app');
-
-    // ---------- 辅助函数 ----------
+    
+    // 辅助函数
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function formatDate(isoString) {
+        if (!isoString) return '未知时间';
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return isoString;
+        return date.toLocaleString('zh-CN', { hour12: false });
+    }
+    
     function showError(containerId, message) {
         const el = document.getElementById(containerId);
         if (el) el.innerHTML = `<div class="error-msg">⚠️ ${message}</div>`;
     }
+    
     function clearError(containerId) {
         const el = document.getElementById(containerId);
         if (el) el.innerHTML = '';
     }
+    
     function showSuccess(containerId, message) {
         const el = document.getElementById(containerId);
         if (el) el.innerHTML = `<div class="success-msg">✅ ${message}</div>`;
         setTimeout(() => {
-            if (el) el.innerHTML = '';
+            if (el && el.innerHTML.includes(message)) el.innerHTML = '';
         }, 3000);
     }
-
-    // 检查当前会话 & 监听认证状态变化 (实时)
-    async function initAuthListener() {
-        // 获取当前session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-            console.error("获取session失败", error);
-        }
-        currentSession = session;
-        // 监听认证变化
-        supabase.auth.onAuthStateChange((_event, session) => {
-            currentSession = session;
-            renderApp();   // 每次状态变化重绘整个界面
-            if (session) {
-                // 登录成功后加载帖子
-                fetchPosts();
-            } else {
-                postsList = [];
-                renderApp();
+    
+    // 检查数据库表是否存在
+    async function checkDatabaseTable() {
+        try {
+            // 尝试查询 posts 表是否存在
+            const { error } = await supabase
+                .from('posts')
+                .select('id', { count: 'exact', head: true });
+            
+            if (error) {
+                if (error.message && (error.message.includes('does not exist') || error.message.includes('relation'))) {
+                    console.warn('Posts 表不存在');
+                    tableExists = false;
+                    return false;
+                }
+                // 其他错误可能是权限问题，但表可能存在
+                console.warn('查询 posts 表出错:', error.message);
+                tableExists = true; // 假设存在，让用户尝试
+                return true;
             }
-        });
-        if (currentSession) {
-            await fetchPosts();
+            tableExists = true;
+            return true;
+        } catch (err) {
+            console.error('检查数据库表失败:', err);
+            tableExists = false;
+            return false;
         }
-        renderApp();
     }
-
-    // 获取帖子 (按创建时间倒序)
+    
+    // 获取帖子
     async function fetchPosts() {
+        if (!tableExists) {
+            postsList = [];
+            renderApp();
+            return;
+        }
+        
         try {
             const { data, error } = await supabase
                 .from('posts')
                 .select('*')
                 .order('created_at', { ascending: false });
-            if (error) throw error;
-            postsList = data || [];
-            renderApp(); // 刷新视图
+            
+            if (error) {
+                console.error('获取帖子失败:', error);
+                if (error.message.includes('does not exist')) {
+                    tableExists = false;
+                }
+                postsList = [];
+            } else {
+                postsList = data || [];
+            }
+            renderApp();
         } catch (err) {
-            console.error("获取帖子失败:", err);
+            console.error('获取帖子异常:', err);
             postsList = [];
             renderApp();
         }
     }
-
-    // 创建帖子 (需要登录)
+    
+    // 创建帖子
     async function createPost(title, content) {
         if (!currentSession) {
             alert("请先登录");
             return false;
         }
+        
         if (!title.trim() || !content.trim()) {
             alert("标题和内容不能为空");
             return false;
         }
+        
+        if (!tableExists) {
+            alert("数据库表未配置，请先按照页面底部的指引创建 'posts' 表");
+            return false;
+        }
+        
         try {
             const { data, error } = await supabase
                 .from('posts')
-                .insert([
-                    {
-                        title: title.trim(),
-                        content: content.trim(),
-                        user_id: currentSession.user.id,
-                        user_email: currentSession.user.email,
-                        created_at: new Date().toISOString()
-                    }
-                ])
+                .insert([{
+                    title: title.trim(),
+                    content: content.trim(),
+                    user_id: currentSession.user.id,
+                    user_email: currentSession.user.email,
+                    created_at: new Date().toISOString()
+                }])
                 .select();
-            if (error) throw error;
-            // 重新拉取帖子列表
+            
+            if (error) {
+                console.error('发布失败:', error);
+                if (error.message.includes('does not exist')) {
+                    tableExists = false;
+                    alert("数据表不存在，请先创建 posts 表");
+                } else {
+                    alert("发布失败: " + (error.message || "未知错误"));
+                }
+                return false;
+            }
+            
             await fetchPosts();
             return true;
         } catch (err) {
-            console.error("发布失败:", err);
-            alert("发布失败: " + (err.message || "未知错误"));
+            console.error('发布异常:', err);
+            alert("发布失败: " + err.message);
             return false;
         }
     }
-
-    // 注册逻辑
+    
+    // 注册
     async function handleRegister(email, password, confirmPwd, errorContainerId) {
         clearError(errorContainerId);
+        
         if (!email || !password) {
             showError(errorContainerId, "邮箱和密码都是必填项");
             return false;
         }
+        
         if (password !== confirmPwd) {
             showError(errorContainerId, "两次输入的密码不一致");
             return false;
         }
+        
         if (password.length < 6) {
             showError(errorContainerId, "密码长度至少6位");
             return false;
         }
+        
         try {
             const { data, error } = await supabase.auth.signUp({
                 email: email,
                 password: password,
+                options: {
+                    emailRedirectTo: window.location.origin
+                }
             });
+            
             if (error) throw error;
+            
             if (data.user) {
-                showSuccess(errorContainerId, "注册成功！请登录（若需邮箱确认请查收邮件，但这里自动登录？未自动登录需手动登录）");
-                // 切换到登录模式，方便用户登录
+                showSuccess(errorContainerId, "注册成功！请登录您的账户");
                 authMode = 'login';
                 renderApp();
                 return true;
@@ -365,55 +436,72 @@
             return false;
         }
     }
-
-    // 登录逻辑
+    
+    // 登录
     async function handleLogin(email, password, errorContainerId) {
         clearError(errorContainerId);
+        
         if (!email || !password) {
             showError(errorContainerId, "请输入邮箱和密码");
             return;
         }
+        
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
+            
             if (error) throw error;
+            
             if (data.session) {
-                // 登录成功，session会自动触发 onAuthStateChange, 重新渲染
                 showSuccess(errorContainerId, "登录成功！");
             }
         } catch (err) {
             showError(errorContainerId, err.message);
         }
     }
-
+    
     // 退出登录
     async function handleLogout() {
         await supabase.auth.signOut();
-        // 状态由监听器自动更新
     }
-
-    // ---------- 渲染UI ----------
-    function renderApp() {
-        if (!appContainer) return;
-        // 判断用户是否登录
-        const isLoggedIn = !!currentSession?.user;
-        const user = currentSession?.user || null;
-
-        if (!isLoggedIn) {
-            // 渲染认证页面 (登录/注册切换)
-            renderAuthPage();
-        } else {
-            // 渲染已登录的主页 (发帖 + 帖子列表)
-            renderMainPage(user);
-        }
-    }
-
+    
+    // 渲染登录/注册页面
     function renderAuthPage() {
         const isLoginMode = authMode === 'login';
-        const containerHtml = `
-            <div class="card auth-card">
+        const setupGuideHtml = !tableExists ? `
+            <div class="setup-guide">
+                <strong>📋 数据库配置指引</strong><br>
+                检测到 "posts" 表不存在，请先在 Supabase SQL Editor 中执行以下命令：
+                <pre>CREATE TABLE IF NOT EXISTS posts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    user_id UUID NOT NULL,
+    user_email TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable insert for authenticated users" ON posts
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Enable select for all users" ON posts
+    FOR SELECT USING (true);
+
+CREATE POLICY "Enable update for own posts" ON posts
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Enable delete for own posts" ON posts
+    FOR DELETE USING (auth.uid() = user_id);</pre>
+                <button id="retryCheckBtn" style="margin-top: 12px; background: #f59e0b;">✅ 我已经创建好表，重新检测</button>
+            </div>
+        ` : '';
+        
+        const html = `
+            <div class="card">
                 <h1 style="text-align: center;">📝 社区论坛</h1>
                 <p style="text-align: center; color: #6c757d; margin-bottom: 24px;">分享观点 · 连接彼此</p>
                 <div style="max-width: 400px; margin: 0 auto;">
@@ -440,12 +528,15 @@
                     </div>
                 </div>
             </div>
+            ${setupGuideHtml}
         `;
-        appContainer.innerHTML = containerHtml;
-
+        
+        appContainer.innerHTML = html;
+        
         // 绑定事件
         const submitBtn = document.getElementById('authSubmitBtn');
         const toggleLink = document.getElementById('toggleAuthMode');
+        const retryBtn = document.getElementById('retryCheckBtn');
         const emailInput = document.getElementById('authEmail');
         const pwdInput = document.getElementById('authPassword');
         const confirmInput = document.getElementById('authConfirmPwd');
@@ -462,6 +553,7 @@
                 }
             });
         }
+        
         if (toggleLink) {
             toggleLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -469,7 +561,18 @@
                 renderAuthPage();
             });
         }
-        // 按回车快速提交
+        
+        if (retryBtn) {
+            retryBtn.addEventListener('click', async () => {
+                await checkDatabaseTable();
+                renderAuthPage();
+                if (tableExists) {
+                    await fetchPosts();
+                }
+            });
+        }
+        
+        // 回车提交
         const inputs = [emailInput, pwdInput, confirmInput].filter(Boolean);
         inputs.forEach(inp => {
             inp.addEventListener('keypress', (e) => {
@@ -477,30 +580,41 @@
             });
         });
     }
-
+    
+    // 渲染主页面
     function renderMainPage(user) {
-        // 渲染发帖表单 + 帖子列表
-        const emailDisplay = user?.email || user?.user_email || '用户';
-        const postsHtml = postsList.length === 0 
-            ? `<div class="empty-state">📭 暂无帖子，成为第一个发帖的人吧！</div>`
-            : postsList.map(post => `
-                <div class="post-item">
-                    <div class="post-title">${escapeHtml(post.title)}</div>
-                    <div class="post-content">${escapeHtml(post.content)}</div>
-                    <div class="post-meta">
-                        <span>✍️ ${escapeHtml(post.user_email || '匿名')}</span>
-                        <span>📅 ${formatDate(post.created_at)}</span>
-                        ${post.user_id === user.id ? '<span class="badge">我的帖子</span>' : ''}
+        const emailDisplay = user?.email || '用户';
+        const setupWarningHtml = !tableExists ? `
+            <div class="setup-guide" style="margin-bottom: 16px;">
+                ⚠️ 检测到 "posts" 表不存在，无法发布和查看帖子。请先按照指引创建数据表。
+                <button id="retryCheckBtnMain" style="margin-top: 8px; background: #f59e0b; font-size: 0.8rem;">重新检测</button>
+            </div>
+        ` : '';
+        
+        const postsHtml = !tableExists ? 
+            `<div class="empty-state">📋 请先配置数据库表以查看帖子</div>` :
+            (postsList.length === 0 ? 
+                `<div class="empty-state">📭 暂无帖子，成为第一个发帖的人吧！</div>` :
+                postsList.map(post => `
+                    <div class="post-item">
+                        <div class="post-title">${escapeHtml(post.title)}</div>
+                        <div class="post-content">${escapeHtml(post.content)}</div>
+                        <div class="post-meta">
+                            <span>✍️ ${escapeHtml(post.user_email || '匿名')}</span>
+                            <span>📅 ${formatDate(post.created_at)}</span>
+                            ${post.user_id === user.id ? '<span class="badge">我的帖子</span>' : ''}
+                        </div>
                     </div>
-                </div>
-            `).join('');
-
-        const mainHtml = `
+                `).join(''));
+        
+        const html = `
             <div class="user-info">
                 <span class="user-email">👤 ${escapeHtml(emailDisplay)}</span>
                 <button id="logoutBtn" class="outline" style="padding: 6px 16px;">退出登录</button>
             </div>
-            <div class="card post-form-card">
+            ${setupWarningHtml}
+            ${tableExists ? `
+            <div class="card">
                 <h2>📝 发布新帖子</h2>
                 <div id="postFormError"></div>
                 <div class="input-group">
@@ -516,132 +630,129 @@
                     <button id="clearBtn" class="secondary" type="button">清空</button>
                 </div>
             </div>
+            ` : ''}
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: baseline;">
                     <h2>📌 最新帖子</h2>
-                    <span style="font-size: 0.7rem; background:#e2e8f0; padding:4px 12px; border-radius:30px;">${postsList.length} 篇</span>
+                    ${tableExists ? `<span style="font-size: 0.7rem; background:#e2e8f0; padding:4px 12px; border-radius:30px;">${postsList.length} 篇</span>` : ''}
                 </div>
                 <div id="postsListContainer">
                     ${postsHtml}
                 </div>
             </div>
         `;
-        appContainer.innerHTML = mainHtml;
-
-        // 绑定发布事件
-        const publishBtn = document.getElementById('publishBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const titleInput = document.getElementById('postTitle');
-        const contentInput = document.getElementById('postContent');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        if (publishBtn) {
-            publishBtn.addEventListener('click', async () => {
-                const title = titleInput?.value || '';
-                const content = contentInput?.value || '';
-                const success = await createPost(title, content);
-                if (success) {
-                    // 清空表单
+        
+        appContainer.innerHTML = html;
+        
+        // 绑定事件
+        if (tableExists) {
+            const publishBtn = document.getElementById('publishBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const titleInput = document.getElementById('postTitle');
+            const contentInput = document.getElementById('postContent');
+            
+            if (publishBtn) {
+                publishBtn.addEventListener('click', async () => {
+                    const title = titleInput?.value || '';
+                    const content = contentInput?.value || '';
+                    const success = await createPost(title, content);
+                    if (success) {
+                        if (titleInput) titleInput.value = '';
+                        if (contentInput) contentInput.value = '';
+                        showSuccess('postFormError', '帖子发布成功！');
+                    } else {
+                        showError('postFormError', '发布失败，请检查网络或数据库配置');
+                    }
+                });
+            }
+            
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
                     if (titleInput) titleInput.value = '';
                     if (contentInput) contentInput.value = '';
-                    showSuccess('postFormError', '帖子发布成功！');
-                    // 重新获取帖子并重绘已在createPost中调用fetchPosts，会触发renderApp
-                } else {
-                    showError('postFormError', '发布失败，请检查网络或内容');
-                }
-            });
+                    clearError('postFormError');
+                });
+            }
         }
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (titleInput) titleInput.value = '';
-                if (contentInput) contentInput.value = '';
-                clearError('postFormError');
-            });
-        }
+        
+        const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
                 handleLogout();
             });
         }
-    }
-
-    // 辅助函数: 防XSS
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
-        });
+        
+        const retryBtn = document.getElementById('retryCheckBtnMain');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', async () => {
+                await checkDatabaseTable();
+                if (tableExists) {
+                    await fetchPosts();
+                } else {
+                    renderMainPage(user);
+                }
+            });
+        }
     }
     
-    function formatDate(isoString) {
-        if (!isoString) return '未知时间';
-        const date = new Date(isoString);
-        if (isNaN(date.getTime())) return isoString;
-        return date.toLocaleString('zh-CN', { hour12: false });
+    // 主渲染函数
+    function renderApp() {
+        const isLoggedIn = !!currentSession?.user;
+        const user = currentSession?.user || null;
+        
+        if (!isLoggedIn) {
+            renderAuthPage();
+        } else {
+            renderMainPage(user);
+        }
     }
-
-    // ---------- 额外确保数据表存在（检查并提示用户，如果表不存在需要手动建表）----------
-    async function ensureTableExists() {
-        // 由于 supabase anon key 权限通常不能随意创建表，但为了体验友好，尝试查询posts表是否存在，不存在则给用户提示。
+    
+    // 初始化应用
+    async function init() {
         try {
-            const { error } = await supabase.from('posts').select('id', { count: 'exact', head: true });
-            if (error && error.message.includes('relation') && error.message.includes('does not exist')) {
-                console.warn("posts表不存在，请按照指引创建表");
-                // 显示友好提示但不阻断，只是无法显示帖子，注册登录仍可用
-                const originalRender = renderApp;
-                window.renderApp = renderApp;
-                // 在页面顶部显示提示条
-                const toast = document.createElement('div');
-                toast.style.position = 'fixed';
-                toast.style.bottom = '20px';
-                toast.style.left = '20px';
-                toast.style.right = '20px';
-                toast.style.backgroundColor = '#f97316';
-                toast.style.color = 'white';
-                toast.style.padding = '12px';
-                toast.style.borderRadius = '32px';
-                toast.style.zIndex = '999';
-                toast.style.fontSize = '0.85rem';
-                toast.style.textAlign = 'center';
-                toast.innerHTML = '⚠️ 数据库缺少 "posts" 表，请前往 Supabase SQL Editor 执行建表语句（详见控制台或说明）';
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 8000);
+            // 检查数据库表
+            await checkDatabaseTable();
+            
+            // 获取当前会话
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) {
+                console.error('获取会话失败:', error);
             }
-        } catch(e) {}
+            currentSession = session;
+            
+            // 监听认证状态变化
+            supabase.auth.onAuthStateChange(async (_event, session) => {
+                currentSession = session;
+                if (session && tableExists) {
+                    await fetchPosts();
+                } else if (!session) {
+                    postsList = [];
+                    renderApp();
+                } else {
+                    renderApp();
+                }
+            });
+            
+            // 如果已登录且表存在，获取帖子
+            if (currentSession && tableExists) {
+                await fetchPosts();
+            } else {
+                renderApp();
+            }
+            
+            isInitialized = true;
+        } catch (err) {
+            console.error('初始化失败:', err);
+            appContainer.innerHTML = `
+                <div class="card">
+                    <div class="error-msg">❌ 连接服务器失败: ${err.message}</div>
+                    <button onclick="location.reload()" style="margin-top: 16px;">重新加载</button>
+                </div>
+            `;
+        }
     }
     
-    // 启动应用 & 执行建表建议输出到控制台帮助用户
-    function init() {
-        initAuthListener();
-        ensureTableExists();
-        // 输出帮助信息: 若表不存在, 请用户手动创建posts表
-        console.log(`
-        ==========  Supabase 配置提醒 ==========
-        如果遇到帖子无法发布或获取失败，请在 Supabase SQL Editor 中执行以下建表语句:
-        
-        CREATE TABLE IF NOT EXISTS posts (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL,
-            user_id UUID NOT NULL,
-            user_email TEXT,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        );
-        
-        -- 启用 RLS 并允许所有认证用户操作 (可根据需要调整)
-        ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-        CREATE POLICY "Enable all for authenticated users" ON posts
-            FOR ALL USING (auth.role() = 'authenticated');
-        CREATE POLICY "Enable read for everyone" ON posts
-            FOR SELECT USING (true);
-        =========================================
-        `);
-    }
+    // 启动应用
     init();
 </script>
 </body>
