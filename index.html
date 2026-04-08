@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>荒野拾荒者 - 完整版</title>
+<title>荒野拾荒者</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 <script>
+  // 🔥 已替换成你的 Firebase 配置
   const firebaseConfig = {
     apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
     authDomain: "durango110.firebaseapp.com",
@@ -29,9 +30,21 @@ body{margin:0;padding:0;background:#111827;color:white;font-family:system-ui}
 <body>
 <div class="max-w-md mx-auto h-screen flex flex-col border-x border-gray-700">
 
+<!-- 登录弹窗 -->
+<div id="loginModal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+  <div class="bg-gray-800 p-5 rounded-lg w-80">
+    <h2 class="text-xl font-bold mb-3 text-center">登录 / 注册</h2>
+    <input id="email" placeholder="邮箱" class="w-full p-2 rounded bg-gray-700 mb-2">
+    <input id="pw" type="password" placeholder="密码" class="w-full p-2 rounded bg-gray-700 mb-2">
+    <button onclick="login()" class="w-full p-2 bg-blue-600 rounded mb-2">登录</button>
+    <button onclick="register()" class="w-full p-2 bg-green-600 rounded mb-3">注册</button>
+    <button onclick="logout()" class="w-full p-2 bg-red-600 rounded">退出登录</button>
+  </div>
+</div>
+
 <!-- 顶部状态栏 -->
 <div class="bg-gray-800 p-3 flex justify-between text-sm">
-  <span id="nickname">未登录</span>
+  <span id="nickname" onclick="document.getElementById('loginModal').classList.toggle('hidden')">未登录</span>
   <div>
     💰<span id="gold">0</span>
     ⚡<span id="stamina">0</span>/<span id="staminaMax">10</span>
@@ -88,7 +101,7 @@ body{margin:0;padding:0;background:#111827;color:white;font-family:system-ui}
     <div id="msgArea"></div>
     <div id="chatArea" class="hidden"></div>
   </div>
-  <input id="chatInput" placeholder="输入聊天内容..." onkeydown="if(event.key=='Enter')sendChat()" class="w-full p-1 mt-1 rounded bg-gray-700">
+  <input id="chatInput" placeholder="输入聊天内容..." onkeydown="if(event.key==='Enter')sendChat()" class="w-full p-1 mt-1 rounded bg-gray-700">
 </div>
 
 <!-- 底部导航 -->
@@ -119,24 +132,47 @@ const items = [
   {id:"shield", name:"盾牌", type:"craft", need:{metal:3,stone:2}},
 ];
 
+// 登录注册
 auth.onAuthStateChanged(async u=>{
   if(!u){
-    await auth.signInAnonymously();
+    document.getElementById('loginModal').classList.remove('hidden');
     return;
   }
   user = u;
+  document.getElementById('loginModal').classList.add('hidden');
   const doc = await db.collection("players").doc(u.uid).get();
   if(doc.exists) player = doc.data();
   else await db.collection("players").doc(u.uid).set(player);
   startStaminaRecover();
   refreshUI();
+  listenMarket();
 });
 
+async function login(){
+  const email = document.getElementById('email').value;
+  const pw = document.getElementById('pw').value;
+  try{ await auth.signInWithEmailAndPassword(email,pw); }
+  catch(e){alert('登录失败：'+e.message);}
+}
+
+async function register(){
+  const email = document.getElementById('email').value;
+  const pw = document.getElementById('pw').value;
+  try{ await auth.createUserWithEmailAndPassword(email,pw); }
+  catch(e){alert('注册失败：'+e.message);}
+}
+
+async function logout(){
+  await auth.signOut();
+  location.reload();
+}
+
+// 游戏核心
 function refreshUI(){
   document.getElementById("gold").innerText = player.gold;
   document.getElementById("stamina").innerText = player.stamina;
   document.getElementById("staminaMax").innerText = player.staminaMax;
-  document.getElementById("nickname").innerText = player.name;
+  document.getElementById("nickname").innerText = user?.email || "未登录";
 }
 
 function doScavenge(){
@@ -169,6 +205,7 @@ async function savePlayer(){
   if(user) await db.collection("players").doc(user.uid).set(player);
 }
 
+// 信息 & 聊天
 function addMsg(text){
   const d = new Date();
   const t = `[${d.getHours()}:${d.getMinutes()}] `;
@@ -180,7 +217,7 @@ function sendChat(){
   const txt = document.getElementById("chatInput").value;
   if(!txt||!user)return;
   db.collection("chat").add({
-    name:player.name, msg:txt, time:new Date()
+    name:user.email, msg:txt, time:new Date()
   });
   document.getElementById("chatInput").value="";
 }
@@ -194,6 +231,7 @@ db.collection("chat").orderBy("time").onSnapshot(snap=>{
   document.getElementById("chatArea").scrollTop=9999;
 });
 
+// 界面切换
 function switchTab(to){
   const isMsg = to=="msg";
   document.getElementById("msgArea").classList.toggle("hidden",!isMsg);
@@ -211,14 +249,19 @@ function show(page){
   if(page=="craft")renderCraft();
   if(page=="book")renderBook();
   if(page=="skill")renderSkill();
+  if(page=="market")renderMarket();
 }
 
+// 背包 / 制作 / 图鉴 / 技能
 function renderBag(){
   let h="";
   for(let id in player.inventory){
     const num=player.inventory[id];
     const it=items.find(i=>i.id==id);
-    if(it&&num>0)h+=`<div class="p-2 bg-gray-700 rounded">${it.name} ×${num}</div>`;
+    if(it&&num>0)h+=`<div class="p-2 bg-gray-700 rounded flex justify-between">
+      ${it.name} ×${num}
+      <button onclick="sellMarket('${id}',1,100)" class="bg-yellow-600 px-2 rounded text-xs">上架</button>
+    </div>`;
   }
   document.getElementById("bagList").innerHTML=h||"<div class='text-gray-400'>空</div>";
 }
@@ -266,7 +309,69 @@ function startStaminaRecover(){
   },5000);
 }
 
-function searchMarket(){}
+// 市场系统
+function listenMarket(){
+  db.collection("market").onSnapshot(snap=>{
+    window.marketData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderMarket();
+  });
+}
+
+function renderMarket(){
+  const list = document.getElementById("marketItems");
+  let html="";
+  const data = window.marketData||[];
+  data.forEach(item=>{
+    html+=`<div class="p-2 bg-gray-700 rounded flex justify-between">
+      ${item.name} 价格:${item.price}
+      <button onclick="buyMarket('${item.id}')" class="bg-green-600 px-2 rounded">购买</button>
+    </div>`;
+  });
+  list.innerHTML=html||"<div class='text-gray-400'>暂无商品</div>";
+}
+
+async function sellMarket(itemId,num,price){
+  if(!user)return;
+  if((player.inventory[itemId]||0)<num){addMsg('物品不足');return}
+  player.inventory[itemId]-=num;
+  const it = items.find(i=>i.id==itemId);
+  await db.collection("market").add({
+    seller:user.uid, name:it.name, itemId, num, price
+  });
+  savePlayer();
+  renderBag();
+  addMsg(`已上架：${it.name}`);
+}
+
+async function buyMarket(docId){
+  if(!user)return;
+  const item = (window.marketData||[]).find(i=>i.id==docId);
+  if(!item)return;
+  if(player.gold < item.price){addMsg('金币不足');return}
+  
+  player.gold -= item.price;
+  player.inventory[item.itemId] = (player.inventory[item.itemId]||0)+item.num;
+  
+  await db.collection("market").doc(docId).delete();
+  savePlayer();
+  refreshUI();
+  addMsg(`购买成功：${item.name}`);
+}
+
+function searchMarket(){
+  const kw = document.getElementById("marketSearch").value.toLowerCase();
+  const list = document.getElementById("marketItems");
+  let html="";
+  (window.marketData||[]).forEach(item=>{
+    if(item.name.toLowerCase().includes(kw)){
+      html+=`<div class="p-2 bg-gray-700 rounded flex justify-between">
+        ${item.name} 价格:${item.price}
+        <button onclick="buyMarket('${item.id}')" class="bg-green-600 px-2 rounded">购买</button>
+      </div>`;
+    }
+  });
+  list.innerHTML=html||"<div class='text-gray-400'>无结果</div>";
+}
 </script>
 </body>
 </html>
