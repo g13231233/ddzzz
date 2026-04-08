@@ -3,164 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文字修仙联机</title>
+<title>联机测试</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:"Microsoft YaHei",sans-serif}
-body{background:#111;color:#eee;padding:10px;max-width:500px;margin:0 auto}
-.panel{background:#1b1b32;border-radius:10px;padding:12px}
-.title{text-align:center;color:#ffcc00;margin-bottom:10px}
-.online{text-align:center;color:#00ff88;margin-bottom:8px;font-size:14px}
-.info{display:flex;justify-content:space-between;background:#252545;padding:8px;border-radius:8px;margin-bottom:10px}
-.btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-button{padding:10px;border:none;border-radius:8px;background:#00ccff;font-weight:bold}
-.btn-meditate{background:#ff9500}
-.btn-rank{background:#00ffaa}
-.chat{background:#222;height:280px;border-radius:8px;padding:8px;overflow-y:auto;font-size:14px;line-height:1.5;margin-bottom:10px}
-.chat-input{display:flex;gap:8px}
-input{flex:1;padding:10px;border-radius:8px;background:#2d2d44;color:#fff;border:none;outline:0}
-.rank-box{display:none;background:#1b1b32;border-radius:8px;padding:10px;margin-top:10px}
-.rank-item{padding:4px 0;border-bottom:1px solid #333}
-.no{color:#ff5555;font-weight:bold}
+body{background:#111;color:#fff;font-family:Arial;padding:20px;max-width:400px;margin:auto}
+.online{color:#0f0;margin:10px 0;font-size:16px}
+.chat{background:#222;height:250px;padding:10px;overflow-y:auto;border-radius:6px;margin:10px 0}
+input,button{padding:10px;width:100%;margin:5px 0;border-radius:6px;border:none}
+button{background:#09f;color:#fff}
 </style>
 </head>
 <body>
 
-<div class="panel">
-  <h2 class="title">☁️ 文字修仙联机</h2>
-  <div class="online" id="online">在线人数：加载中...</div>
-  <div class="info">
-    <div>道号：<span id="name"></span></div>
-    <div>境界：<span id="level"></span></div>
-    <div>修为：<span id="exp"></span></div>
-  </div>
-  <div class="btns">
-    <button class="btn-meditate" id="meditate">🧘 打坐</button>
-    <button class="btn-rank" id="toggleRank">📊 排行</button>
-    <button id="rename">✏️ 改名</button>
-  </div>
-  <div class="chat" id="chat"></div>
-  <div class="chat-input">
-    <input id="msg" placeholder="发言...">
-    <button id="send">发送</button>
-  </div>
-  <div class="rank-box" id="rankBox">
-    <div id="rankList"></div>
-  </div>
-</div>
+<div class="online" id="online">在线人数：加载中...</div>
+<button id="testBtn">测试按钮（可点）</button>
+<div class="chat" id="chat"></div>
+<input id="msg" placeholder="输入聊天内容">
+<button id="send">发送聊天</button>
 
 <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
 <script>
+// 极简配置，无报错
 const firebaseConfig = {
   apiKey: "AIzaSyC4RvmbE9HkZJz7IVDdQjLqVq1nHkVG9dQ",
   databaseURL: "https://public-xianxiu-default-rtdb.firebaseio.com"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const usersRef = db.ref("users");
-const chatRef = db.ref("chat");
-const onlineRef = db.ref("online");
-
-// 唯一ID
-const uid = localStorage.getItem("uid") || Math.random().toString(36).slice(2, 10);
-localStorage.setItem("uid", uid);
 
 // 在线状态
-const meOnline = onlineRef.child(uid);
-meOnline.set(true);
-meOnline.onDisconnect().remove();
+const uid = localStorage.getItem("uid") || Math.random().toString(36).substr(2,8);
+localStorage.setItem("uid", uid);
+const online = db.ref("online_test").child(uid);
+online.set(true);
+online.onDisconnect().remove();
 
 // 在线人数
-onlineRef.on("value", (snap) => {
-  document.getElementById("online").textContent = `在线人数：${snap.numChildren()} 人`;
+db.ref("online_test").on("value", snap => {
+  document.getElementById("online").innerText = "在线人数：" + snap.size + " 人";
 });
 
-// 境界配置
-const levels = [
-  {n:"炼气一层",e:0},{n:"炼气二层",e:50},{n:"炼气三层",e:120},
-  {n:"炼气四层",e:220},{n:"炼气五层",e:350},{n:"炼气六层",e:500},
-  {n:"炼气七层",e:700},{n:"炼气八层",e:950},{n:"炼气九层",e:1250},
-  {n:"筑基初期",e:1600},{n:"筑基中期",e:2000},{n:"筑基后期",e:2500},
-  {n:"筑基圆满",e:3000},{n:"金丹初期",e:3600}
-];
+// 聊天
+const chatRef = db.ref("chat_test");
 
-// 玩家数据
-let me = { name: "道友" + uid.slice(-3), exp: 0, level: "炼气一层" };
-
-// 读取存档
-usersRef.child(uid).once("value").then(s => {
-  if (s.val()) me = s.val();
-  render();
-});
-
-// 刷新界面
-function render() {
-  let lv = levels.findLast(l => me.exp >= l.e) || levels[0];
-  me.level = lv.n;
-
-  document.getElementById("name").textContent = me.name;
-  document.getElementById("level").textContent = me.level;
-  document.getElementById("exp").textContent = me.exp;
-
-  usersRef.child(uid).set(me);
-}
-
-// 打坐
-document.getElementById("meditate").onclick = () => {
-  me.exp += Math.floor(Math.random() * 10) + 5;
-  render();
-};
-
-// 改名
-document.getElementById("rename").onclick = () => {
-  let newName = prompt("输入道号：", me.name);
-  if (newName && newName.length > 0 && newName.length < 8) {
-    me.name = newName;
-    render();
+// 发送
+document.getElementById("send").onclick = () => {
+  const txt = document.getElementById("msg").value.trim();
+  if(txt){
+    chatRef.push({name:"玩家",msg:txt});
+    document.getElementById("msg").value = "";
   }
 };
 
-// 聊天显示
-function addChat(name, msg) {
-  const chatEl = document.getElementById("chat");
-  const color = name === "系统" ? "#ff5555" : "#00ffcc";
-  chatEl.innerHTML += `<div><span style="color:${color}">${name}：</span>${msg}</div>`;
-  chatEl.scrollTop = chatEl.scrollHeight;
-}
-
-// 发送消息
-document.getElementById("send").onclick = () => {
-  const input = document.getElementById("msg");
-  const txt = input.value.trim();
-  if (!txt) return;
-  chatRef.push({ name: me.name, msg: txt });
-  input.value = "";
-};
-
-// 监听聊天
-chatRef.limitToLast(30).on("child_added", s => {
+// 接收
+chatRef.limitToLast(20).on("child_added", s => {
   const d = s.val();
-  addChat(d.name, d.msg);
+  const c = document.getElementById("chat");
+  c.innerHTML += d.name + "：" + d.msg + "<br>";
+  c.scrollTop = c.scrollHeight;
 });
 
-// 排行榜切换
-document.getElementById("toggleRank").onclick = () => {
-  const box = document.getElementById("rankBox");
-  box.style.display = box.style.display === "none" ? "block" : "none";
+// 测试按钮
+document.getElementById("testBtn").onclick = ()=>{
+  alert("按钮正常可点击");
 };
-
-// 排行榜数据
-usersRef.orderByChild("exp").limitToLast(20).on("value", s => {
-  const list = [];
-  s.forEach(data => list.unshift(data.val()));
-  const html = list.map((u, i) => `
-    <div class="rank-item"><span class="no">${i+1}</span> ${u.name} [${u.level}] ${u.exp}修为</div>
-  `).join("");
-  document.getElementById("rankList").innerHTML = html;
-});
-
-render();
 </script>
 </body>
 </html>
