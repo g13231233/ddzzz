@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文字MMO - 实时在线游戏</title>
-    <!-- Firebase CDN -->
+    <title>文字MMO - 完整版</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
-    
     <style>
         * {
             margin: 0;
@@ -29,7 +27,35 @@
             padding: 20px;
         }
 
-        /* 登录/注册面板 */
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background: #0f3460;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .auth-panel {
             background: #16213e;
             padding: 30px;
@@ -68,7 +94,6 @@
             background: #00a8cc;
         }
 
-        /* 游戏主界面 */
         .game-ui {
             display: none;
         }
@@ -86,9 +111,10 @@
         .player-info {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
         }
 
-        .game-main {
+        .game-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
@@ -98,7 +124,7 @@
             background: #16213e;
             padding: 20px;
             border-radius: 10px;
-            height: 500px;
+            height: 600px;
             overflow-y: auto;
         }
 
@@ -109,26 +135,23 @@
             padding-bottom: 10px;
         }
 
-        /* 战斗区域 */
-        .battle-area {
-            text-align: center;
-        }
-
-        .enemy-info {
+        .item-card, .task-item {
             background: #0f3460;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
-            margin: 20px 0;
+            margin: 8px 0;
         }
 
-        .battle-btn {
-            width: 48%;
-            margin: 5px 1%;
+        .item-card h4 {
+            color: #ffeb3b;
         }
 
-        /* 聊天区域 */
+        .rarity-common { color: #fff; }
+        .rarity-rare { color: #4fc3f7; }
+        .rarity-epic { color: #ba68c8; }
+
         .chat-messages {
-            height: 380px;
+            height: 450px;
             background: #0f3460;
             border-radius: 5px;
             padding: 10px;
@@ -147,9 +170,25 @@
             font-weight: bold;
         }
 
-        /* 响应式 */
+        .list-item {
+            background: #0f3460;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pvp-enemy {
+            background: #b71c1c;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
-            .game-main {
+            .game-grid {
                 grid-template-columns: 1fr;
             }
             .auth-panel {
@@ -159,262 +198,345 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 登录注册界面 -->
-        <div class="auth-panel" id="authPanel">
-            <h2>文字MMO在线游戏</h2>
-            <input type="email" id="email" placeholder="邮箱">
-            <input type="password" id="password" placeholder="密码">
-            <button onclick="register()">注册账号</button>
-            <button onclick="login()">登录游戏</button>
-            <div style="text-align:center; margin-top:10px;">
-                <span id="authMsg" style="color:#ff4444;"></span>
-            </div>
-        </div>
-
-        <!-- 游戏主界面 -->
-        <div class="game-ui" id="gameUI">
-            <div class="game-header">
-                <div class="player-info">
-                    <div>玩家：<span id="playerName"></span></div>
-                    <div>职业：<span id="playerClass"></span></div>
-                    <div>等级：<span id="playerLevel"></span></div>
-                    <div>金币：<span id="playerGold"></span></div>
-                </div>
-                <button onclick="logout()" style="width:auto;">退出登录</button>
-            </div>
-
-            <div class="game-main">
-                <!-- 战斗面板 -->
-                <div class="panel">
-                    <h3>冒险战斗</h3>
-                    <div class="battle-area">
-                        <div class="enemy-info">
-                            <h4>野怪：<span id="enemyName">史莱姆</span></h4>
-                            <p>血量：<span id="enemyHp">100</span>/100</p>
-                        </div>
-                        <button class="battle-btn" onclick="attackEnemy()">普通攻击</button>
-                        <button class="battle-btn" onclick="useSkill()">技能攻击</button>
-                        <p id="battleLog" style="margin-top:20px; color:#ffeb3b;"></p>
-                    </div>
-                </div>
-
-                <!-- 聊天面板 -->
-                <div class="panel">
-                    <h3>世界聊天</h3>
-                    <div class="chat-messages" id="chatMessages"></div>
-                    <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.keyCode==13) sendChat()">
-                    <button onclick="sendChat()">发送</button>
-                </div>
-            </div>
+<div class="container">
+    <div class="auth-panel" id="authPanel">
+        <h2>文字MMO完整版</h2>
+        <input type="email" id="email" placeholder="邮箱">
+        <input type="password" id="password" placeholder="密码">
+        <button onclick="register()">注册账号</button>
+        <button onclick="login()">登录游戏</button>
+        <div style="text-align:center; margin-top:10px;">
+            <span id="authMsg" style="color:#ff4444;"></span>
         </div>
     </div>
 
-    <script>
-        // Firebase 配置（你的配置）
-        const firebaseConfig = {
-            apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
-            authDomain: "durango110.firebaseapp.com",
-            projectId: "durango110",
-            storageBucket: "durango110.firebasestorage.app",
-            messagingSenderId: "674394866246",
-            appId: "1:674394866246:web:72ecd92fed2e703f124047"
-        };
+    <div class="game-ui" id="gameUI">
+        <div class="game-header">
+            <div class="player-info">
+                <div>玩家：<span id="playerName"></span></div>
+                <div>职业：<span id="playerClass"></span></div>
+                <div>等级：<span id="playerLevel"></span></div>
+                <div>金币：<span id="playerGold"></span></div>
+            </div>
+            <button onclick="logout()" style="width:auto;">退出登录</button>
+        </div>
 
-        // 初始化Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('battle')">冒险战斗</button>
+            <button class="tab-btn" onclick="switchTab('task')">任务系统</button>
+            <button class="tab-btn" onclick="switchTab('bag')">背包装备</button>
+            <button class="tab-btn" onclick="switchTab('shop')">游戏商城</button>
+            <button class="tab-btn" onclick="switchTab('pvp')">PVP对战</button>
+            <button class="tab-btn" onclick="switchTab('rank')">排行榜</button>
+            <button class="tab-btn" onclick="switchTab('chat')">世界聊天</button>
+        </div>
 
-        // 全局玩家数据
-        let currentUser = null;
-        let playerData = {};
-        let enemyData = { name: "史莱姆", hp: 100, maxHp: 100 };
+        <div class="game-grid">
+            <div id="battle" class="tab-content active panel">
+                <h3>冒险战斗</h3>
+                <div class="enemy-info" style="background:#0f3460; padding:15px; border-radius:8px; text-align:center;">
+                    <h4>野怪：<span id="enemyName">史莱姆</span></h4>
+                    <p>血量：<span id="enemyHp">100</span>/100</p>
+                </div>
+                <button onclick="attackEnemy()">普通攻击</button>
+                <button onclick="useSkill()">技能攻击</button>
+                <p id="battleLog" style="color:#ffeb3b; margin-top:15px; text-align:center;"></p>
+            </div>
 
-        // ==================== 登录注册功能 ====================
-        function register() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            if(!email || !password) {
-                showMsg("请输入邮箱和密码");
-                return;
-            }
+            <div id="task" class="tab-content panel">
+                <h3>每日任务</h3>
+                <div id="taskList"></div>
+            </div>
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    currentUser = userCredential.user;
-                    createPlayer();
-                })
-                .catch((error) => {
-                    showMsg("注册失败：" + error.message);
-                });
-        }
+            <div id="bag" class="tab-content panel">
+                <h3>装备背包</h3>
+                <div id="bagList"></div>
+            </div>
 
-        function login() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            if(!email || !password) {
-                showMsg("请输入邮箱和密码");
-                return;
-            }
+            <div id="shop" class="tab-content panel">
+                <h3>装备商城</h3>
+                <div id="shopList"></div>
+            </div>
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    currentUser = userCredential.user;
-                    loadPlayerData();
-                })
-                .catch((error) => {
-                    showMsg("登录失败：" + error.message);
-                });
-        }
+            <div id="pvp" class="tab-content panel">
+                <h3>PVP玩家对战</h3>
+                <div id="onlinePlayers"></div>
+                <div id="pvpBattle" style="display:none;">
+                    <div class="pvp-enemy" id="pvpTarget"></div>
+                    <button onclick="pvpAttack()">攻击玩家</button>
+                    <p id="pvpLog" style="color:#ffeb3b; margin-top:15px;"></p>
+                </div>
+            </div>
 
-        function logout() {
-            auth.signOut().then(() => {
-                document.getElementById("authPanel").style.display = "block";
-                document.getElementById("gameUI").style.display = "none";
-            });
-        }
+            <div id="rank" class="tab-content panel">
+                <h3>全服排行榜</h3>
+                <div id="rankList"></div>
+            </div>
 
-        function showMsg(msg) {
-            document.getElementById("authMsg").textContent = msg;
-        }
+            <div id="chat" class="tab-content panel">
+                <h3>世界聊天</h3>
+                <div class="chat-messages" id="chatMessages"></div>
+                <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.keyCode==13) sendChat()">
+                <button onclick="sendChat()">发送</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // ==================== 玩家数据 ====================
-        function createPlayer() {
-            const playerId = currentUser.uid;
-            const defaultData = {
-                name: "玩家" + playerId.substring(0,4),
-                job: "战士",
-                level: 1,
-                hp: 100,
-                maxHp: 100,
-                attack: 20,
-                skillAttack: 35,
-                gold: 100,
-                exp: 0
-            };
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
+    authDomain: "durango110.firebaseapp.com",
+    projectId: "durango110",
+    storageBucket: "durango110.firebasestorage.app",
+    messagingSenderId: "674394866246",
+    appId: "1:674394866246:web:72ecd92fed2e703f124047"
+};
 
-            db.ref("players/" + playerId).set(defaultData)
-                .then(() => {
-                    loadPlayerData();
-                });
-        }
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
 
-        function loadPlayerData() {
-            const playerId = currentUser.uid;
-            db.ref("players/" + playerId).on("value", (snapshot) => {
-                playerData = snapshot.val();
-                updatePlayerUI();
-                // 显示游戏界面
-                document.getElementById("authPanel").style.display = "none";
-                document.getElementById("gameUI").style.display = "block";
-            });
-        }
+let currentUser = null;
+let playerData = {};
+let enemyData = { name: "史莱姆", hp: 100, maxHp: 100 };
+let pvpTarget = null;
 
-        function updatePlayerUI() {
-            document.getElementById("playerName").textContent = playerData.name;
-            document.getElementById("playerClass").textContent = playerData.job;
-            document.getElementById("playerLevel").textContent = playerData.level;
-            document.getElementById("playerGold").textContent = playerData.gold;
-        }
+// 装备库
+const items = [
+    {id:1, name:"铁剑", type:"武器", attack:10, price:200, rarity:"common"},
+    {id:2, name:"钢甲", type:"护甲", hp:50, price:300, rarity:"rare"},
+    {id:3, name:"魔法戒", type:"饰品", skillAttack:20, price:500, rarity:"epic"}
+];
 
-        // ==================== 战斗系统 ====================
-        function attackEnemy() {
-            // 玩家攻击
-            const damage = playerData.attack;
-            enemyData.hp -= damage;
-            if(enemyData.hp < 0) enemyData.hp = 0;
-            updateEnemyUI();
-            showBattleLog("你对史莱姆造成了" + damage + "点伤害！");
+// 任务库
+const tasks = [
+    {id:1, title:"击败3只史莱姆", desc:"击杀3个野怪", goal:3, progress:0, reward:200},
+    {id:2, title:"获得500金币", desc:"赚取500金币", goal:500, progress:0, reward:300}
+];
 
-            // 怪物死亡
-            if(enemyData.hp <= 0) {
-                const rewardGold = Math.floor(Math.random() * 50) + 10;
-                const rewardExp = Math.floor(Math.random() * 20) + 5;
-                
-                playerData.gold += rewardGold;
-                playerData.exp += rewardExp;
-                savePlayerData();
-                
-                showBattleLog("史莱姆被击败！获得" + rewardGold + "金币+" + rewardExp + "经验！");
-                // 重置怪物
-                setTimeout(() => {
-                    enemyData.hp = enemyData.maxHp;
-                    updateEnemyUI();
-                    showBattleLog("新的史莱姆出现了！");
-                }, 1500);
-                return;
-            }
+// 标签切换
+function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    if(id==='task') loadTasks();
+    if(id==='bag') loadBag();
+    if(id==='shop') loadShop();
+    if(id==='pvp') loadOnlinePlayers();
+    if(id==='rank') loadRank();
+}
 
-            // 怪物反击
-            setTimeout(() => {
-                const enemyDamage = Math.floor(Math.random() * 10) + 5;
-                showBattleLog("史莱姆对你造成了" + enemyDamage + "点伤害！");
-            }, 500);
-        }
+// 登录注册
+function register() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    auth.createUserWithEmailAndPassword(email,password).then(res=>{
+        currentUser = res.user;
+        db.ref("players/"+currentUser.uid).set({
+            name:"玩家"+currentUser.uid.slice(0,4), job:"战士", level:1, hp:100, maxHp:100,
+            attack:20, skillAttack:35, gold:500, exp:0, bag:[], tasks:tasks, online:true
+        }).then(()=>login());
+    }).catch(e=>showMsg(e.message));
+}
 
-        function useSkill() {
-            const damage = playerData.skillAttack;
-            enemyData.hp -= damage;
-            if(enemyData.hp < 0) enemyData.hp = 0;
-            updateEnemyUI();
-            showBattleLog("你使用技能造成了" + damage + "点伤害！");
-
-            if(enemyData.hp <= 0) {
-                const rewardGold = Math.floor(Math.random() * 50) + 10;
-                const rewardExp = Math.floor(Math.random() * 20) + 5;
-                
-                playerData.gold += rewardGold;
-                playerData.exp += rewardExp;
-                savePlayerData();
-                
-                showBattleLog("史莱姆被秒杀！获得" + rewardGold + "金币+" + rewardExp + "经验！");
-                setTimeout(() => {
-                    enemyData.hp = enemyData.maxHp;
-                    updateEnemyUI();
-                    showBattleLog("新的史莱姆出现了！");
-                }, 1500);
-            }
-        }
-
-        function updateEnemyUI() {
-            document.getElementById("enemyHp").textContent = enemyData.hp;
-        }
-
-        function showBattleLog(text) {
-            document.getElementById("battleLog").textContent = text;
-        }
-
-        function savePlayerData() {
-            db.ref("players/" + currentUser.uid).update(playerData);
-        }
-
-        // ==================== 聊天系统 ====================
-        function sendChat() {
-            const input = document.getElementById("chatInput");
-            const msg = input.value.trim();
-            if(!msg) return;
-
-            const chatData = {
-                name: playerData.name,
-                content: msg,
-                time: new Date().toLocaleTimeString()
-            };
-
-            db.ref("chat").push(chatData);
-            input.value = "";
-        }
-
-        // 监听聊天消息
-        db.ref("chat").limitToLast(50).on("child_added", (snapshot) => {
-            const chat = snapshot.val();
-            const chatBox = document.getElementById("chatMessages");
-            const div = document.createElement("div");
-            div.className = "chat-message";
-            div.innerHTML = `<span class="chat-name">${chat.name}</span> [${chat.time}]：${chat.content}`;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(email,password).then(res=>{
+        currentUser = res.user;
+        db.ref("players/"+currentUser.uid).update({online:true});
+        db.ref("players/"+currentUser.uid).on("value",s=>{
+            playerData = s.val();
+            updateUI();
+            document.getElementById("authPanel").style.display="none";
+            document.getElementById("gameUI").style.display="block";
         });
-    </script>
+    }).catch(e=>showMsg(e.message));
+}
+
+function logout() {
+    db.ref("players/"+currentUser.uid).update({online:false}).then(()=>auth.signOut());
+}
+
+function showMsg(m){document.getElementById("authMsg").innerText=m}
+function updateUI(){
+    document.getElementById("playerName").innerText=playerData.name;
+    document.getElementById("playerClass").innerText=playerData.job;
+    document.getElementById("playerLevel").innerText=playerData.level;
+    document.getElementById("playerGold").innerText=playerData.gold;
+}
+
+// 战斗系统
+function attackEnemy() {
+    let dmg = playerData.attack;
+    enemyData.hp -= dmg;
+    if(enemyData.hp<0)enemyData.hp=0;
+    document.getElementById("enemyHp").innerText=enemyData.hp;
+    showBattle("你造成"+dmg+"点伤害");
+    
+    if(enemyData.hp<=0){
+        let g = Math.floor(Math.random()*50+20);
+        playerData.gold += g;
+        playerData.tasks[0].progress +=1;
+        savePlayer();
+        showBattle("击败怪物！获得"+g+"金币");
+        enemyData.hp = enemyData.maxHp;
+        document.getElementById("enemyHp").innerText=enemyData.maxHp;
+    }
+}
+
+function useSkill(){
+    let dmg = playerData.skillAttack;
+    enemyData.hp-=dmg;
+    if(enemyData.hp<0)enemyData.hp=0;
+    document.getElementById("enemyHp").innerText=enemyData.hp;
+    showBattle("技能造成"+dmg+"伤害！");
+}
+
+function showBattle(t){document.getElementById("battleLog").innerText=t}
+
+// 任务
+function loadTasks(){
+    let html="";
+    playerData.tasks.forEach(t=>{
+        html+=`<div class="task-item"><h4>${t.title}</h4><p>${t.desc}</p><p>进度：${t.progress}/${t.goal}</p><button onclick="getReward(${t.id})">领取奖励</button></div>`;
+    });
+    document.getElementById("taskList").innerHTML=html;
+}
+
+function getReward(id){
+    let t = playerData.tasks[id-1];
+    if(t.progress>=t.goal){
+        playerData.gold += t.reward;
+        t.progress = 0;
+        savePlayer();
+        loadTasks();
+        alert("奖励领取成功！");
+    }else alert("未完成任务");
+}
+
+// 背包
+function loadBag(){
+    let html="";
+    if(!playerData.bag || playerData.bag.length===0) html="<p>背包为空</p>";
+    else playerData.bag.forEach(i=>{
+        html+=`<div class="item-card"><h4 class="rarity-${i.rarity}">${i.name}</h4><p>攻击+${i.attack||0} 生命+${i.hp||0}</p><button onclick="equip(${i.id})">装备</button></div>`;
+    });
+    document.getElementById("bagList").innerHTML=html;
+}
+
+function equip(id){
+    let it = items.find(i=>i.id==id);
+    playerData.attack += it.attack||0;
+    playerData.skillAttack += it.skillAttack||0;
+    playerData.hp += it.hp||0;
+    playerData.maxHp += it.hp||0;
+    savePlayer();
+    alert("装备成功！属性提升");
+}
+
+// 商城
+function loadShop(){
+    let html="";
+    items.forEach(i=>{
+        html+=`<div class="item-card"><h4 class="rarity-${i.rarity}">${i.name}</h4><p>价格：${i.price}金币</p><button onclick="buy(${i.id})">购买</button></div>`;
+    });
+    document.getElementById("shopList").innerHTML=html;
+}
+
+function buy(id){
+    let it = items.find(i=>i.id==id);
+    if(playerData.gold >= it.price){
+        playerData.gold -= it.price;
+        if(!playerData.bag) playerData.bag=[];
+        playerData.bag.push(it);
+        savePlayer();
+        alert("购买成功！");
+        loadShop();
+        loadBag();
+    }else alert("金币不足");
+}
+
+// PVP
+function loadOnlinePlayers(){
+    document.getElementById("pvpBattle").style.display="none";
+    db.ref("players").once("value",s=>{
+        let list = s.val();
+        let html="";
+        for(let id in list){
+            if(id!==currentUser.uid && list[id].online){
+                html+=`<div class="list-item"><span>${list[id].name} Lv${list[id].level}</span><button onclick="startPVP('${id}')">挑战</button></div>`;
+            }
+        }
+        document.getElementById("onlinePlayers").innerHTML=html;
+    });
+}
+
+function startPVP(uid){
+    pvpTarget = uid;
+    db.ref("players/"+uid).once("value",s=>{
+        let p = s.val();
+        document.getElementById("pvpTarget").innerHTML=`<h4>${p.name} Lv${p.level}</h4><p>血量：${p.hp}/${p.maxHp}</p>`;
+        document.getElementById("pvpBattle").style.display="block";
+    });
+}
+
+function pvpAttack(){
+    db.ref("players/"+pvpTarget).once("value",s=>{
+        let p = s.val();
+        let dmg = playerData.attack;
+        p.hp -= dmg;
+        if(p.hp<0)p.hp=0;
+        db.ref("players/"+pvpTarget).update({hp:p.hp});
+        document.getElementById("pvpLog").innerText="你对"+p.name+"造成"+dmg+"伤害！";
+        if(p.hp<=0){
+            playerData.gold += 200;
+            savePlayer();
+            alert("PVP胜利！获得200金币");
+            document.getElementById("pvpBattle").style.display="none";
+        }
+    });
+}
+
+// 排行榜
+function loadRank(){
+    db.ref("players").once("value",s=>{
+        let arr=[];
+        for(let i in s.val()) arr.push({...s.val()[i], id:i});
+        arr.sort((a,b)=>b.level - a.level);
+        let html="";
+        arr.forEach((p,i)=>{
+            html+=`<div class="list-item"><span>${i+1}. ${p.name} Lv${p.level}</span><span>金币：${p.gold}</span></div>`;
+        });
+        document.getElementById("rankList").innerHTML=html;
+    });
+}
+
+// 聊天
+function sendChat(){
+    let t = document.getElementById("chatInput").value;
+    if(!t)return;
+    db.ref("chat").push({name:playerData.name, msg:t, time:new Date().toLocaleTimeString()});
+    document.getElementById("chatInput").value="";
+}
+
+db.ref("chat").limitToLast(30).on("child_added",s=>{
+    let c = s.val();
+    let div = document.createElement("div");
+    div.className="chat-message";
+    div.innerHTML=`<span class="chat-name">${c.name}</span>[${c.time}]：${c.msg}`;
+    document.getElementById("chatMessages").appendChild(div);
+    document.getElementById("chatMessages").scrollTop=9999;
+});
+
+// 保存数据
+function savePlayer(){
+    db.ref("players/"+currentUser.uid).update(playerData);
+}
+
+window.onbeforeunload=()=>{if(currentUser)db.ref("players/"+currentUser.uid).update({online:false})}
+</script>
 </body>
 </html>
