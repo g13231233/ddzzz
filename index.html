@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简帖 · 轻留言板</title>
+    <title>🐾 云养宠 · 毛球小窝</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'PingFang SC', Roboto, system-ui, sans-serif;
+            font-family: 'Segoe UI', 'PingFang SC', 'Helvetica Neue', sans-serif;
         }
 
         body {
             min-height: 100vh;
-            background: linear-gradient(145deg, #f5f7fa 0%, #e9ecf2 100%);
+            background: linear-gradient(145deg, #f9e7e7 0%, #ffe6d5 50%, #fef9e0 100%);
+            background-attachment: fixed;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,21 +24,21 @@
 
         #app {
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
         }
 
-        /* 卡片设计 */
+        /* 卡片设计 — 毛玻璃可爱风 */
         .card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 48px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            transition: all 0.2s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* 登录/注册卡片 */
+        /* 登录卡片 */
         #auth-container {
             text-align: center;
             max-width: 440px;
@@ -45,21 +46,24 @@
         }
 
         .logo {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 8px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.05));
         }
 
         h2 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1e293b;
+            font-size: 32px;
+            font-weight: 700;
+            color: #5e3c23;
             margin-bottom: 6px;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
-            color: #64748b;
+            color: #9b6b43;
             margin-bottom: 28px;
-            font-size: 15px;
+            font-size: 16px;
+            font-weight: 500;
         }
 
         .input-group {
@@ -71,29 +75,32 @@
             display: block;
             margin-bottom: 6px;
             font-size: 14px;
-            font-weight: 500;
-            color: #334155;
+            font-weight: 600;
+            color: #6b4a2c;
         }
 
         .input-group input {
             width: 100%;
-            padding: 14px 18px;
+            padding: 16px 20px;
             font-size: 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 20px;
-            background: white;
-            color: #0f172a;
+            border: 2px solid #fadbc8;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #3e2c1b;
             outline: none;
             transition: all 0.2s;
+            font-weight: 500;
         }
 
         .input-group input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            border-color: #ffaa7a;
+            background: white;
+            box-shadow: 0 0 0 5px rgba(255, 170, 122, 0.15);
         }
 
         .input-group input::placeholder {
-            color: #94a3b8;
+            color: #b2977e;
+            font-weight: 400;
         }
 
         .btn-group {
@@ -104,65 +111,57 @@
         }
 
         .btn {
-            padding: 12px 28px;
+            padding: 14px 30px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             border: none;
-            border-radius: 40px;
+            border-radius: 60px;
             cursor: pointer;
             transition: all 0.2s;
             background: white;
-            color: #1e293b;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            color: #5e3c23;
+            border: 2px solid #fadbc8;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+            letter-spacing: 0.3px;
         }
 
         .btn-primary {
-            background: #3b82f6;
+            background: #ffaa7a;
             color: white;
             border: none;
-            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+            box-shadow: 0 10px 20px rgba(255, 170, 122, 0.3);
         }
 
         .btn-primary:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.3);
+            background: #ff8f5a;
+            transform: translateY(-3px);
+            box-shadow: 0 16px 24px rgba(255, 143, 90, 0.35);
         }
 
         .btn-secondary {
-            background: white;
-            border: 1px solid #cbd5e1;
+            background: rgba(255,255,240,0.7);
+            border: 2px solid #ffe0c0;
         }
 
         .btn-secondary:hover {
-            background: #f8fafc;
-            border-color: #94a3b8;
-        }
-
-        .btn-danger {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-        }
-
-        .btn-danger:hover {
-            background: #fee2e2;
+            background: white;
+            border-color: #ffaa7a;
         }
 
         .btn-small {
-            padding: 8px 16px;
+            padding: 8px 18px;
             font-size: 14px;
         }
 
         .error-message {
-            color: #dc2626;
+            color: #d14545;
             font-size: 14px;
             margin-top: 12px;
             min-height: 20px;
+            font-weight: 500;
         }
 
-        /* 主应用界面 */
+        /* 主应用 */
         #app-container {
             display: none;
         }
@@ -171,199 +170,273 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             flex-wrap: wrap;
             gap: 15px;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
         .header-left h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0f172a;
+            font-size: 28px;
+            font-weight: 800;
+            color: #5e3c23;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .user-badge {
+        .user-area {
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: white;
-            padding: 6px 16px 6px 20px;
-            border-radius: 40px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #e2e8f0;
+            gap: 16px;
+            background: rgba(255,255,240,0.5);
+            padding: 8px 16px 8px 22px;
+            border-radius: 60px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.8);
         }
 
         .user-email {
-            font-weight: 500;
-            color: #1e293b;
+            font-weight: 600;
+            color: #5e3c23;
         }
 
-        /* 发帖区域 */
-        .post-composer {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
+        .pet-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-            border: 1px solid #eef2f6;
         }
 
-        .composer-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+        .pet-card {
+            background: rgba(255, 248, 235, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 30px 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 220, 180, 0.6);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
         }
 
-        .avatar-placeholder {
-            width: 40px;
-            height: 40px;
-            background: #3b82f6;
+        .pet-avatar {
+            font-size: 120px;
+            line-height: 1;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 8px 16px rgba(210, 120, 40, 0.2));
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .pet-avatar:active {
+            transform: scale(0.95);
+        }
+
+        .pet-name {
+            font-size: 28px;
+            font-weight: 800;
+            color: #5e3c23;
+            margin-bottom: 8px;
+        }
+
+        .pet-level {
+            display: inline-block;
+            background: #ffd8b0;
+            padding: 6px 18px;
             border-radius: 40px;
+            font-weight: 700;
+            color: #5e3c23;
+            margin-bottom: 20px;
+            border: 2px solid white;
+        }
+
+        .pet-stats {
+            background: rgba(255,255,255,0.4);
+            border-radius: 30px;
+            padding: 16px 20px;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .stat-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #dbb48b;
         }
 
-        .composer-input {
-            width: 100%;
+        .stat-row:last-child {
+            border-bottom: none;
         }
 
-        .composer-input textarea {
-            width: 100%;
-            padding: 16px;
-            font-size: 16px;
-            border: 1.5px solid #e2e8f0;
+        .stat-label {
+            font-weight: 600;
+            color: #6b4a2c;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #3e2c1b;
+        }
+
+        .exp-bar-container {
+            margin: 15px 0 5px;
+            height: 12px;
+            background: rgba(0,0,0,0.05);
             border-radius: 20px;
-            background: #fafbfc;
-            resize: vertical;
-            min-height: 100px;
-            outline: none;
-            transition: border 0.2s;
-            font-family: inherit;
+            overflow: hidden;
         }
 
-        .composer-input textarea:focus {
-            border-color: #3b82f6;
-            background: white;
+        .exp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffb37b, #ff8a5c);
+            border-radius: 20px;
+            width: 0%;
+            transition: width 0.3s;
         }
 
-        .composer-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 16px;
+        .action-panel {
+            background: rgba(255, 245, 230, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 28px 24px;
+            border: 1px solid rgba(255, 220, 180, 0.6);
         }
 
-        /* 帖子列表 */
-        .posts-feed {
+        .action-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #5e3c23;
+            margin-bottom: 24px;
+        }
+
+        .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 14px;
         }
 
-        .post-card {
+        .action-btn {
             background: white;
-            border-radius: 20px;
-            padding: 22px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1px solid #eef2f6;
-            transition: all 0.15s;
-        }
-
-        .post-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.05);
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-
-        .post-avatar {
-            width: 40px;
-            height: 40px;
-            background: #64748b;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .post-author {
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .post-time {
-            font-size: 13px;
-            color: #64748b;
-            margin-left: 8px;
-        }
-
-        .post-content {
-            color: #1e293b;
-            line-height: 1.6;
-            margin-bottom: 16px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .post-footer {
-            display: flex;
-            justify-content: flex-end;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 14px;
-            margin-top: 4px;
-        }
-
-        .delete-btn {
-            background: none;
             border: none;
-            color: #94a3b8;
+            border-radius: 60px;
+            padding: 18px 20px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #5e3c23;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 13px;
-            transition: all 0.15s;
+            transition: all 0.2s;
+            border: 2px solid #ffe0c0;
+            box-shadow: 0 4px 0 #eecbad;
         }
 
-        .delete-btn:hover {
-            background: #fee2e2;
-            color: #dc2626;
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #eecbad;
+            background: #fff8ef;
+        }
+
+        .action-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #eecbad;
+        }
+
+        .action-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.3);
+        }
+
+        .action-cost {
+            font-size: 15px;
+            background: #ffdbb5;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: #5e3c23;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0 16px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #9b7b5e;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #5e3c23;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+        }
+
+        .ranking-list {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 16px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .rank-number {
+            font-weight: 800;
+            color: #b06e3e;
+            width: 30px;
+            text-align: center;
+        }
+
+        .rank-avatar {
+            font-size: 30px;
+        }
+
+        .rank-info {
+            flex: 1;
+        }
+
+        .rank-name {
+            font-weight: 700;
+            color: #3e2c1b;
+        }
+
+        .rank-value {
+            font-weight: 800;
+            color: #ff8a5c;
         }
 
         .empty-feed {
             text-align: center;
-            padding: 48px 20px;
-            color: #64748b;
-            background: #f8fafc;
-            border-radius: 24px;
-            font-size: 16px;
+            padding: 30px;
+            color: #9b7b5e;
         }
 
         .loading-spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(59,130,246,0.2);
-            border-top-color: #3b82f6;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,170,122,0.2);
+            border-top-color: #ffaa7a;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -375,73 +448,118 @@
         .footer-note {
             margin-top: 24px;
             text-align: center;
-            color: #94a3b8;
-            font-size: 13px;
+            color: #b2977e;
+            font-size: 14px;
+        }
+
+        .gold-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffd966;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            color: #5e3c23;
+        }
+
+        @media (max-width: 700px) {
+            .pet-panel { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- 登录/注册界面 -->
+        <!-- 登录注册 -->
         <div id="auth-container" class="card">
-            <div class="logo">📝</div>
-            <h2>简帖</h2>
-            <p class="subtitle">写点什么，留给世界</p>
+            <div class="logo">🐣</div>
+            <h2>毛球小窝</h2>
+            <p class="subtitle">领养一只可爱宠物，陪伴成长</p>
             
             <div class="input-group">
-                <label>邮箱</label>
+                <label>📧 邮箱</label>
                 <input type="email" id="email" placeholder="your@email.com" autocomplete="email" />
             </div>
             <div class="input-group">
-                <label>密码</label>
+                <label>🔐 密码</label>
                 <input type="password" id="password" placeholder="至少6位" autocomplete="current-password" />
             </div>
             <div id="auth-error" class="error-message"></div>
             
             <div class="btn-group">
                 <button class="btn btn-primary" id="login-btn">登录</button>
-                <button class="btn btn-secondary" id="register-btn">注册</button>
+                <button class="btn btn-secondary" id="register-btn">注册领养</button>
             </div>
-            <p style="margin-top: 20px; color: #64748b; font-size: 14px;">
-                首次使用自动注册，密码至少6位
+            <p style="margin-top: 24px; color: #9b7b5e; font-size: 14px;">
+                首次使用自动注册，开启养宠之旅 🐾
             </p>
         </div>
 
-        <!-- 主应用界面 -->
+        <!-- 主界面 -->
         <div id="app-container">
             <div class="header">
                 <div class="header-left">
-                    <h1>📝 简帖</h1>
+                    <h1>🐾 毛球小窝</h1>
                 </div>
-                <div class="user-badge">
+                <div class="user-area">
                     <span class="user-email" id="display-email"></span>
-                    <button class="btn btn-danger btn-small" id="logout-btn">登出</button>
+                    <span class="gold-badge" id="gold-header">💰 0</span>
+                    <button class="btn btn-secondary btn-small" id="logout-btn">登出</button>
                 </div>
             </div>
 
-            <!-- 发帖框 -->
-            <div class="post-composer">
-                <div class="composer-header">
-                    <div class="avatar-placeholder" id="composer-avatar">👤</div>
-                    <div style="font-weight: 500; color: #1e293b;">分享你的想法...</div>
+            <!-- 宠物信息 & 互动 -->
+            <div class="pet-panel">
+                <div class="pet-card">
+                    <div class="pet-avatar" id="pet-avatar">🐶</div>
+                    <div class="pet-name" id="pet-name">小毛球</div>
+                    <div class="pet-level" id="pet-level">Lv.1</div>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="exp-bar" style="width:0%"></div>
+                    </div>
+                    <div class="pet-stats">
+                        <div class="stat-row"><span class="stat-label">❤️ 心情</span><span class="stat-value" id="stat-mood">开心</span></div>
+                        <div class="stat-row"><span class="stat-label">⚡ 经验</span><span class="stat-value" id="stat-exp">0/100</span></div>
+                        <div class="stat-row"><span class="stat-label">🪙 金币</span><span class="stat-value" id="stat-gold">0</span></div>
+                    </div>
                 </div>
-                <div class="composer-input">
-                    <textarea id="post-content" placeholder="写点什么吧… (支持换行)" maxlength="500"></textarea>
-                </div>
-                <div class="composer-actions">
-                    <button class="btn btn-primary" id="publish-btn">发布帖子</button>
+
+                <div class="action-panel">
+                    <div class="action-title">✨ 互动一下</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" id="feed-btn">
+                            <span>🍖 喂食</span>
+                            <span class="action-cost">+15 EXP / -5💰</span>
+                        </button>
+                        <button class="action-btn" id="play-btn">
+                            <span>🎾 玩耍</span>
+                            <span class="action-cost">+30 EXP / -8💰</span>
+                        </button>
+                        <button class="action-btn" id="clean-btn">
+                            <span>🛁 清洁</span>
+                            <span class="action-cost">+10 EXP / 心情↑</span>
+                        </button>
+                        <button class="action-btn" id="work-btn">
+                            <span>💼 打工</span>
+                            <span class="action-cost">+20💰 / 心情↓</span>
+                        </button>
+                    </div>
+                    <p style="margin-top: 20px; color:#8b6f50; font-size:14px; text-align:center;">
+                        💡 等级越高，打工金币越多！
+                    </p>
                 </div>
             </div>
 
-            <!-- 帖子列表 -->
-            <h3 style="margin-bottom: 16px; color: #334155; font-weight: 600;">📋 最新讨论</h3>
-            <div id="posts-list" class="posts-feed">
-                <div class="empty-feed">
-                    <span class="loading-spinner"></span> 加载中...
-                </div>
+            <!-- 排行榜区域 -->
+            <div class="tabs">
+                <button class="tab-btn active" data-rank="level">🏆 等级排行</button>
+                <button class="tab-btn" data-rank="gold">💰 富豪排行</button>
+            </div>
+            <div id="ranking-container" class="ranking-list">
+                <div class="empty-feed"><span class="loading-spinner"></span> 加载中...</div>
             </div>
             <div class="footer-note">
-                每一条留言都值得被看见
+                🌱 每天互动，你的毛球会越来越强~
             </div>
         </div>
     </div>
@@ -458,19 +576,20 @@
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { 
             getFirestore,
+            doc,
+            setDoc,
+            getDoc,
+            updateDoc,
             collection,
-            addDoc,
             query,
             orderBy,
+            limit,
             onSnapshot,
             serverTimestamp,
-            doc,
-            deleteDoc,
-            where,
-            limit
+            increment
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // 你的 Firebase 配置
+        // 你的配置
         const firebaseConfig = {
             apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
             authDomain: "durango110.firebaseapp.com",
@@ -480,12 +599,21 @@
             appId: "1:674394866246:web:72ecd92fed2e703f124047"
         };
 
-        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DOM 元素
+        // 游戏配置
+        const EXP_TABLE = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000];
+        const PET_AVATARS = ['🐶', '🐱', '🐼', '🦊', '🐸', '🐨', '🦝', '🐮'];
+        
+        let currentUser = null;
+        let petData = null;
+        let petUnsubscribe = null;
+        let rankUnsubscribe = null;
+        let currentRankType = 'level';
+
+        // DOM
         const authContainer = document.getElementById('auth-container');
         const appContainer = document.getElementById('app-container');
         const emailInput = document.getElementById('email');
@@ -494,277 +622,303 @@
         const loginBtn = document.getElementById('login-btn');
         const registerBtn = document.getElementById('register-btn');
         const logoutBtn = document.getElementById('logout-btn');
-        const publishBtn = document.getElementById('publish-btn');
-        const postContent = document.getElementById('post-content');
-        const postsList = document.getElementById('posts-list');
         const displayEmail = document.getElementById('display-email');
-        const composerAvatar = document.getElementById('composer-avatar');
+        const goldHeader = document.getElementById('gold-header');
+        const petAvatar = document.getElementById('pet-avatar');
+        const petName = document.getElementById('pet-name');
+        const petLevelSpan = document.getElementById('pet-level');
+        const expBar = document.getElementById('exp-bar');
+        const statMood = document.getElementById('stat-mood');
+        const statExp = document.getElementById('stat-exp');
+        const statGold = document.getElementById('stat-gold');
+        const feedBtn = document.getElementById('feed-btn');
+        const playBtn = document.getElementById('play-btn');
+        const cleanBtn = document.getElementById('clean-btn');
+        const workBtn = document.getElementById('work-btn');
+        const rankingContainer = document.getElementById('ranking-container');
 
-        let currentUser = null;
-        let postsUnsubscribe = null;
-
-        // ========== 辅助函数 ==========
-        function getAvatarChar(email) {
-            if (!email) return '?';
-            return email.charAt(0).toUpperCase();
+        // 工具函数
+        function getAvatarFromId(uid) {
+            let hash = 0;
+            for (let i = 0; i < uid.length; i++) {
+                hash = ((hash << 5) - hash) + uid.charCodeAt(i);
+                hash |= 0;
+            }
+            return PET_AVATARS[Math.abs(hash) % PET_AVATARS.length];
         }
 
-        function formatTime(timestamp) {
-            if (!timestamp) return '刚刚';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            if (diffMins < 1) return '刚刚';
-            if (diffMins < 60) return `${diffMins}分钟前`;
-            const diffHours = Math.floor(diffMins / 60);
-            if (diffHours < 24) return `${diffHours}小时前`;
-            const diffDays = Math.floor(diffHours / 24);
-            if (diffDays < 7) return `${diffDays}天前`;
-            return date.toLocaleDateString('zh-CN');
+        function getMoodText(mood) {
+            if (mood >= 80) return '😊 超开心';
+            if (mood >= 60) return '🙂 愉快';
+            if (mood >= 40) return '😐 一般';
+            if (mood >= 20) return '😕 低落';
+            return '😢 难过';
+        }
+
+        function getLevelFromExp(exp) {
+            for (let i = EXP_TABLE.length - 1; i >= 0; i--) {
+                if (exp >= EXP_TABLE[i]) return i + 1;
+            }
+            return 1;
+        }
+
+        function getExpForNextLevel(level) {
+            return EXP_TABLE[level] || EXP_TABLE[EXP_TABLE.length-1];
         }
 
         function getAuthErrorMessage(code) {
             const messages = {
                 'auth/invalid-email': '邮箱格式不正确',
-                'auth/user-disabled': '账号已被禁用',
-                'auth/user-not-found': '账号不存在，请先注册',
+                'auth/user-not-found': '账号不存在',
                 'auth/wrong-password': '密码错误',
-                'auth/email-already-in-use': '该邮箱已被注册',
-                'auth/weak-password': '密码至少需要6位',
-                'auth/network-request-failed': '网络错误，请检查连接',
-                'auth/too-many-requests': '请求太频繁，请稍后再试'
+                'auth/email-already-in-use': '该邮箱已注册',
+                'auth/weak-password': '密码至少6位',
             };
-            return messages[code] || '操作失败，请重试';
+            return messages[code] || '操作失败';
         }
 
-        // ========== 认证逻辑 ==========
-        async function handleRegister() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            
-            if (!email || !password) {
-                authError.textContent = '请输入邮箱和密码';
-                return;
-            }
-            if (password.length < 6) {
-                authError.textContent = '密码至少需要6位';
-                return;
-            }
-            
-            try {
-                authError.textContent = '';
-                await createUserWithEmailAndPassword(auth, email, password);
-                // 注册成功会自动触发 onAuthStateChanged
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
+        // 初始化新宠物
+        async function createPetForUser(user) {
+            const avatar = getAvatarFromId(user.uid);
+            const petRef = doc(db, "pets", user.uid);
+            await setDoc(petRef, {
+                email: user.email,
+                name: user.email.split('@')[0] + '的毛球',
+                avatar: avatar,
+                exp: 0,
+                level: 1,
+                gold: 100,
+                mood: 80,
+                totalEarned: 0,
+                updatedAt: serverTimestamp()
+            });
         }
 
-        async function handleLogin() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            
-            if (!email || !password) {
-                authError.textContent = '请输入邮箱和密码';
-                return;
-            }
-            
-            try {
-                authError.textContent = '';
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
+        // 加载宠物数据
+        function listenToPet(uid) {
+            if (petUnsubscribe) petUnsubscribe();
+            const petRef = doc(db, "pets", uid);
+            petUnsubscribe = onSnapshot(petRef, async (snap) => {
+                if (!snap.exists()) {
+                    await createPetForUser(currentUser);
+                    return;
+                }
+                petData = snap.data();
+                updatePetUI();
+            });
         }
 
-        async function handleLogout() {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error('登出失败:', error);
-            }
+        function updatePetUI() {
+            if (!petData) return;
+            
+            const level = getLevelFromExp(petData.exp);
+            const currentExp = petData.exp;
+            const nextExp = getExpForNextLevel(level);
+            const prevExp = level > 1 ? getExpForNextLevel(level-1) : 0;
+            const expPercent = ((currentExp - prevExp) / (nextExp - prevExp)) * 100;
+            
+            petAvatar.textContent = petData.avatar || '🐶';
+            petName.textContent = petData.name || '小毛球';
+            petLevelSpan.textContent = `Lv.${level}`;
+            expBar.style.width = Math.min(100, Math.max(0, expPercent)) + '%';
+            statMood.textContent = getMoodText(petData.mood || 50);
+            statExp.textContent = `${currentExp} / ${nextExp}`;
+            statGold.textContent = petData.gold || 0;
+            goldHeader.textContent = `💰 ${petData.gold || 0}`;
+            displayEmail.textContent = petData.email || currentUser.email;
         }
 
-        // ========== 帖子功能 ==========
-        async function publishPost() {
-            const content = postContent.value.trim();
-            if (!content) {
-                alert('内容不能为空');
-                return;
-            }
-            if (!currentUser) {
-                alert('请先登录');
-                return;
-            }
-
+        // 互动操作
+        async function doAction(type) {
+            if (!currentUser || !petData) return;
+            const petRef = doc(db, "pets", currentUser.uid);
+            
             try {
-                publishBtn.disabled = true;
-                publishBtn.textContent = '发布中...';
+                let updateData = {};
+                let canPerform = true;
+                let message = '';
                 
-                await addDoc(collection(db, "posts"), {
-                    content: content,
-                    authorEmail: currentUser.email,
-                    authorId: currentUser.uid,
-                    createdAt: serverTimestamp()
+                const level = getLevelFromExp(petData.exp);
+                const workGold = 20 + (level * 2);
+                
+                switch(type) {
+                    case 'feed':
+                        if (petData.gold < 5) { alert('💰 金币不够啦'); return; }
+                        updateData = {
+                            exp: increment(15),
+                            gold: increment(-5),
+                            mood: increment(3)
+                        };
+                        message = '🍖 吃饱了好开心 +15EXP';
+                        break;
+                    case 'play':
+                        if (petData.gold < 8) { alert('💰 金币不够啦'); return; }
+                        updateData = {
+                            exp: increment(30),
+                            gold: increment(-8),
+                            mood: increment(10)
+                        };
+                        message = '🎾 玩得好尽兴 +30EXP';
+                        break;
+                    case 'clean':
+                        updateData = {
+                            exp: increment(10),
+                            mood: increment(20)
+                        };
+                        message = '✨ 洗干净了，心情变好 +10EXP';
+                        break;
+                    case 'work':
+                        if (petData.mood < 20) { alert('😢 心情太差，不想打工'); return; }
+                        updateData = {
+                            gold: increment(workGold),
+                            mood: increment(-15),
+                            totalEarned: increment(workGold)
+                        };
+                        message = `💼 打工赚了 ${workGold} 金币`;
+                        break;
+                }
+                
+                await updateDoc(petRef, updateData);
+                
+                // 小动画反馈
+                petAvatar.style.transform = 'scale(1.1)';
+                setTimeout(() => petAvatar.style.transform = 'scale(1)', 100);
+                
+                // 升级检测会通过snapshot自动刷新
+            } catch(err) {
+                console.error(err);
+                alert('操作失败');
+            }
+        }
+
+        // 排行榜监听
+        function listenToRanking(type) {
+            if (rankUnsubscribe) rankUnsubscribe();
+            
+            let q;
+            if (type === 'level') {
+                q = query(collection(db, "pets"), orderBy("exp", "desc"), limit(20));
+            } else {
+                q = query(collection(db, "pets"), orderBy("gold", "desc"), limit(20));
+            }
+            
+            rankUnsubscribe = onSnapshot(q, (snap) => {
+                const items = [];
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const level = getLevelFromExp(data.exp || 0);
+                    items.push({
+                        id: doc.id,
+                        name: data.name || '匿名',
+                        avatar: data.avatar || '🐾',
+                        level: level,
+                        exp: data.exp || 0,
+                        gold: data.gold || 0,
+                        value: type === 'level' ? level : data.gold
+                    });
                 });
                 
-                postContent.value = '';
-            } catch (error) {
-                console.error('发布失败:', error);
-                alert('发布失败: ' + error.message);
-            } finally {
-                publishBtn.disabled = false;
-                publishBtn.textContent = '发布帖子';
-            }
+                if (type === 'level') {
+                    items.sort((a,b) => b.level - a.level || b.exp - a.exp);
+                } else {
+                    items.sort((a,b) => b.gold - a.gold);
+                }
+                
+                renderRanking(items.slice(0, 15), type);
+            });
         }
 
-        async function deletePost(postId) {
-            if (!currentUser) return;
-            if (!confirm('确定删除这条帖子吗？')) return;
-            
-            try {
-                await deleteDoc(doc(db, "posts", postId));
-            } catch (error) {
-                console.error('删除失败:', error);
-                alert('删除失败，请重试');
-            }
-        }
-
-        // 渲染帖子列表
-        function renderPosts(posts) {
-            if (!posts || posts.length === 0) {
-                postsList.innerHTML = '<div class="empty-feed">✨ 还没有帖子，快来发布第一条吧！</div>';
+        function renderRanking(items, type) {
+            if (items.length === 0) {
+                rankingContainer.innerHTML = '<div class="empty-feed">✨ 暂无数据，快来成为第一吧</div>';
                 return;
             }
-
+            
             let html = '';
-            posts.forEach(post => {
-                const isAuthor = currentUser && post.authorId === currentUser.uid;
-                const avatarChar = getAvatarChar(post.authorEmail);
-                const timeStr = formatTime(post.createdAt);
+            items.forEach((item, idx) => {
+                const isMe = currentUser && item.id === currentUser.uid;
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx+1}.`;
+                const displayValue = type === 'level' ? `Lv.${item.level}` : `${item.gold}💰`;
                 
                 html += `
-                    <div class="post-card" data-post-id="${post.id}">
-                        <div class="post-header">
-                            <div class="post-avatar">${avatarChar}</div>
-                            <div>
-                                <span class="post-author">${post.authorEmail.split('@')[0]}</span>
-                                <span class="post-time">${timeStr}</span>
-                            </div>
+                    <div class="rank-item" style="${isMe ? 'background: #fff3e0; border:2px solid #ffb37b;' : ''}">
+                        <div class="rank-number">${medal}</div>
+                        <div class="rank-avatar">${item.avatar}</div>
+                        <div class="rank-info">
+                            <div class="rank-name">${item.name} ${isMe ? '(你)' : ''}</div>
                         </div>
-                        <div class="post-content">${escapeHtml(post.content)}</div>
-                        <div class="post-footer">
-                            ${isAuthor ? 
-                                `<button class="delete-btn" data-post-id="${post.id}">🗑️ 删除</button>` : 
-                                '<span style="color:#cbd5e1; font-size:13px;">❤️ 感谢分享</span>'
-                            }
-                        </div>
+                        <div class="rank-value">${displayValue}</div>
                     </div>
                 `;
             });
-            
-            postsList.innerHTML = html;
-            
-            // 绑定删除事件
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const postId = btn.dataset.postId;
-                    deletePost(postId);
-                });
-            });
+            rankingContainer.innerHTML = html;
         }
 
-        // 简单的转义防止XSS
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML.replace(/\n/g, '<br>');
+        // 认证
+        async function handleRegister() {
+            const email = emailInput.value.trim();
+            const pwd = passwordInput.value;
+            if (!email || !pwd) { authError.textContent = '请输入邮箱密码'; return; }
+            if (pwd.length < 6) { authError.textContent = '密码至少6位'; return; }
+            try {
+                authError.textContent = '';
+                await createUserWithEmailAndPassword(auth, email, pwd);
+            } catch(e) { authError.textContent = getAuthErrorMessage(e.code); }
+        }
+        async function handleLogin() {
+            const email = emailInput.value.trim();
+            const pwd = passwordInput.value;
+            if (!email || !pwd) { authError.textContent = '请输入邮箱密码'; return; }
+            try {
+                authError.textContent = '';
+                await signInWithEmailAndPassword(auth, email, pwd);
+            } catch(e) { authError.textContent = getAuthErrorMessage(e.code); }
+        }
+        async function handleLogout() {
+            await signOut(auth);
         }
 
-        // 监听帖子变化
-        function listenToPosts() {
-            if (postsUnsubscribe) postsUnsubscribe();
-            
-            const postsQuery = query(
-                collection(db, "posts"),
-                orderBy("createdAt", "desc"),
-                limit(50)
-            );
-            
-            postsUnsubscribe = onSnapshot(postsQuery, (snapshot) => {
-                const posts = [];
-                snapshot.forEach(doc => {
-                    posts.push({ id: doc.id, ...doc.data() });
-                });
-                renderPosts(posts);
-            }, (error) => {
-                console.error("监听帖子失败:", error);
-                postsList.innerHTML = '<div class="empty-feed">加载失败，请刷新页面</div>';
-            });
-        }
-
-        // ========== UI 切换 ==========
-        function showAuthUI() {
-            authContainer.style.display = 'block';
-            appContainer.style.display = 'none';
-            if (postsUnsubscribe) {
-                postsUnsubscribe();
-                postsUnsubscribe = null;
-            }
-        }
-
-        function showAppUI(user) {
-            currentUser = user;
-            displayEmail.textContent = user.email;
-            composerAvatar.textContent = getAvatarChar(user.email);
-            
-            authContainer.style.display = 'none';
-            appContainer.style.display = 'block';
-            
-            // 开始监听帖子
-            listenToPosts();
-        }
-
-        // ========== 认证状态监听 ==========
+        // 切换UI
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                showAppUI(user);
+                currentUser = user;
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                listenToPet(user.uid);
+                listenToRanking(currentRankType);
             } else {
                 currentUser = null;
-                showAuthUI();
+                if (petUnsubscribe) petUnsubscribe();
+                if (rankUnsubscribe) rankUnsubscribe();
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
             }
         });
 
-        // ========== 事件绑定 ==========
+        // 事件绑定
         loginBtn.addEventListener('click', handleLogin);
         registerBtn.addEventListener('click', handleRegister);
         logoutBtn.addEventListener('click', handleLogout);
-        publishBtn.addEventListener('click', publishPost);
         
-        // 快捷键: Ctrl+Enter 发布
-        postContent.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                publishPost();
-            }
+        feedBtn.addEventListener('click', () => doAction('feed'));
+        playBtn.addEventListener('click', () => doAction('play'));
+        cleanBtn.addEventListener('click', () => doAction('clean'));
+        workBtn.addEventListener('click', () => doAction('work'));
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentRankType = btn.dataset.rank;
+                listenToRanking(currentRankType);
+            });
         });
         
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleLogin();
-            }
-        });
-        
-        emailInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleLogin();
-            }
-        });
+        passwordInput.addEventListener('keypress', (e) => { if(e.key==='Enter') handleLogin(); });
+        emailInput.addEventListener('keypress', (e) => { if(e.key==='Enter') handleLogin(); });
 
-        // 初始化
-        console.log('✨ 简帖留言板已启动，Firebase 配置已加载');
+        // 初始
+        console.log('🐾 云养宠已启动');
     </script>
 </body>
 </html>
