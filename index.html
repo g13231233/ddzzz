@@ -1,137 +1,648 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>用户登录留言板</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-    body{max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.5}
-    .auth{margin-bottom:2rem}
-    .auth input{padding:.6rem;width:100%;margin:.3rem 0}
-    .auth button{padding:.6rem 1.2rem;background:#2563eb;color:white;border:none;border-radius:6px;margin-right:.5rem;cursor:pointer}
-    .board{margin:2rem 0}
-    .post{padding:1rem;border:1px solid #eee;border-radius:8px;margin-bottom:.8rem}
-    .post .name{font-weight:bold}
-    .post .time{font-size:12px;color:#666}
-    .post .content{margin:.4rem 0}
-    textarea{width:100%;height:80px;padding:.6rem;margin:.5rem 0}
-    .user-info{color:#555;margin-bottom:1rem}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>社区论坛 - 发帖与互动</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 可选: 简易样式美化 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f3f4f6;
+            padding: 24px 16px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+        }
+        .auth-card, .post-form-card, .posts-header {
+            background: white;
+        }
+        h1, h2 {
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            color: #111827;
+            border-left: 5px solid #3b82f6;
+            padding-left: 14px;
+        }
+        .input-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background-color: #fff;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        button.secondary {
+            background: #9ca3af;
+        }
+        button.secondary:hover {
+            background: #6b7280;
+        }
+        button.outline {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+            box-shadow: none;
+        }
+        button.outline:hover {
+            background: #eff6ff;
+        }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #4b5563;
+        }
+        .auth-toggle a {
+            color: #3b82f6;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            background: #fee2e2;
+            padding: 8px 12px;
+            border-radius: 40px;
+        }
+        .success-msg {
+            color: #16a34a;
+            background: #e0f2e7;
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            background: #f9fafb;
+            padding: 12px 18px;
+            border-radius: 60px;
+        }
+        .user-email {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        .post-item {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+            transition: 0.1s;
+        }
+        .post-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+        .post-content {
+            color: #334155;
+            line-height: 1.45;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .post-meta {
+            font-size: 0.7rem;
+            color: #6c757d;
+            display: flex;
+            gap: 16px;
+            border-top: 1px solid #edf2f7;
+            padding-top: 10px;
+            margin-top: 6px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            background: #f9fafb;
+            border-radius: 24px;
+        }
+        hr {
+            margin: 12px 0;
+        }
+        .flex-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .badge {
+            background: #eef2ff;
+            color: #1e40af;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        @media (max-width: 640px) {
+            .card {
+                padding: 18px;
+            }
+            button {
+                width: 100%;
+            }
+            .flex-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<div class="auth">
-  <h3>注册 / 登录</h3>
-  <input type="email" id="email" placeholder="邮箱">
-  <input type="password" id="password" placeholder="密码（至少6位）">
-  <div>
-    <button onclick="register()">注册</button>
-    <button onclick="login()">登录</button>
-    <button onclick="logout()">退出登录</button>
-  </div>
-</div>
-
-<div class="user-info" id="userInfo"></div>
-
-<div class="input-box">
-  <textarea id="content" placeholder="写下你的留言..."></textarea>
-  <button onclick="sendMsg()">发表留言</button>
-</div>
-
-<div class="board" id="board"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// ==============================================
-// 在这里替换成你自己的 Supabase 项目信息
-// ==============================================
-const supabaseUrl = "https://eupvdbmvfqiuyverflys.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1cHZkYm12ZnFpdXl2ZXJmbHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTQyNjIsImV4cCI6MjA5MTIzMDI2Mn0._IqpB-zLhBZD5fRlnSVOaWjY3MCu2jYlRzexew8bgT0";
-// ==============================================
-
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-// 页面加载时检查登录状态
-window.onload = init;
-
-async function init() {
-  const { data: { user } } = await supabase.auth.getUser();
-  showUser(user);
-  loadMessages();
-}
-
-// 显示用户信息
-function showUser(user) {
-  const ui = document.getElementById('userInfo');
-  if (user) {
-    ui.innerHTML = `当前登录：${user.email}`;
-  } else {
-    ui.innerHTML = '未登录，请先登录';
-  }
-}
-
-// 注册
-async function register() {
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  const { error } = await supabase.auth.signUp({ email, password });
-  if (error) alert(error.message);
-  else alert('注册成功！请登录');
-}
-
-// 登录
-async function login() {
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) alert(error.message);
-  else init();
-}
-
-// 退出
-async function logout() {
-  await supabase.auth.signOut();
-  init();
-}
-
-// 加载留言
-async function loadMessages() {
-  const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) return console.error(error);
-  const board = document.getElementById('board');
-  board.innerHTML = data.map(m => `
-    <div class="post">
-      <div class="name">${m.username || '匿名用户'}</div>
-      <div class="time">${new Date(m.created_at).toLocaleString()}</div>
-      <div class="content">${m.content}</div>
+<div class="container">
+    <!-- 动态视图: 未登录显示登录/注册模块; 登录后显示发帖和帖子列表 -->
+    <div id="app">
+        <!-- 此处由js动态渲染 -->
+        <div style="text-align: center; padding: 50px;">加载中...</div>
     </div>
-  `).join('');
-}
+</div>
 
-// 发表留言
-async function sendMsg() {
-  const content = document.getElementById('content').value.trim();
-  if (!content) return alert('请输入内容');
+<script>
+    // ---------- 1. 初始化 Supabase 客户端 ----------
+    const SUPABASE_URL = 'https://eupvdbmvfqiuyverflys.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1cHZkYm12ZnFpdXl2ZXJmbHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTQyNjIsImV4cCI6MjA5MTIzMDI2Mn0._IqpB-zLhBZD5fRlnSVOaWjY3MCu2jYlRzexew8bgT0';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return alert('请先登录');
+    // ---------- 全局状态 ----------
+    let currentSession = null;     // 存储用户session
+    let postsList = [];            // 帖子数组
+    let authMode = 'login';        // 'login' 或 'register'
 
-  const { error } = await supabase.from('messages').insert([{
-    user_id: user.id,
-    username: user.email,
-    content: content
-  }]);
+    // DOM 元素挂载点
+    const appContainer = document.getElementById('app');
 
-  if (error) alert(error.message);
-  else {
-    document.getElementById('content').value = '';
-    loadMessages();
-  }
-}
+    // ---------- 辅助函数 ----------
+    function showError(containerId, message) {
+        const el = document.getElementById(containerId);
+        if (el) el.innerHTML = `<div class="error-msg">⚠️ ${message}</div>`;
+    }
+    function clearError(containerId) {
+        const el = document.getElementById(containerId);
+        if (el) el.innerHTML = '';
+    }
+    function showSuccess(containerId, message) {
+        const el = document.getElementById(containerId);
+        if (el) el.innerHTML = `<div class="success-msg">✅ ${message}</div>`;
+        setTimeout(() => {
+            if (el) el.innerHTML = '';
+        }, 3000);
+    }
+
+    // 检查当前会话 & 监听认证状态变化 (实时)
+    async function initAuthListener() {
+        // 获取当前session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+            console.error("获取session失败", error);
+        }
+        currentSession = session;
+        // 监听认证变化
+        supabase.auth.onAuthStateChange((_event, session) => {
+            currentSession = session;
+            renderApp();   // 每次状态变化重绘整个界面
+            if (session) {
+                // 登录成功后加载帖子
+                fetchPosts();
+            } else {
+                postsList = [];
+                renderApp();
+            }
+        });
+        if (currentSession) {
+            await fetchPosts();
+        }
+        renderApp();
+    }
+
+    // 获取帖子 (按创建时间倒序)
+    async function fetchPosts() {
+        try {
+            const { data, error } = await supabase
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            postsList = data || [];
+            renderApp(); // 刷新视图
+        } catch (err) {
+            console.error("获取帖子失败:", err);
+            postsList = [];
+            renderApp();
+        }
+    }
+
+    // 创建帖子 (需要登录)
+    async function createPost(title, content) {
+        if (!currentSession) {
+            alert("请先登录");
+            return false;
+        }
+        if (!title.trim() || !content.trim()) {
+            alert("标题和内容不能为空");
+            return false;
+        }
+        try {
+            const { data, error } = await supabase
+                .from('posts')
+                .insert([
+                    {
+                        title: title.trim(),
+                        content: content.trim(),
+                        user_id: currentSession.user.id,
+                        user_email: currentSession.user.email,
+                        created_at: new Date().toISOString()
+                    }
+                ])
+                .select();
+            if (error) throw error;
+            // 重新拉取帖子列表
+            await fetchPosts();
+            return true;
+        } catch (err) {
+            console.error("发布失败:", err);
+            alert("发布失败: " + (err.message || "未知错误"));
+            return false;
+        }
+    }
+
+    // 注册逻辑
+    async function handleRegister(email, password, confirmPwd, errorContainerId) {
+        clearError(errorContainerId);
+        if (!email || !password) {
+            showError(errorContainerId, "邮箱和密码都是必填项");
+            return false;
+        }
+        if (password !== confirmPwd) {
+            showError(errorContainerId, "两次输入的密码不一致");
+            return false;
+        }
+        if (password.length < 6) {
+            showError(errorContainerId, "密码长度至少6位");
+            return false;
+        }
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+            });
+            if (error) throw error;
+            if (data.user) {
+                showSuccess(errorContainerId, "注册成功！请登录（若需邮箱确认请查收邮件，但这里自动登录？未自动登录需手动登录）");
+                // 切换到登录模式，方便用户登录
+                authMode = 'login';
+                renderApp();
+                return true;
+            }
+        } catch (err) {
+            showError(errorContainerId, err.message);
+            return false;
+        }
+    }
+
+    // 登录逻辑
+    async function handleLogin(email, password, errorContainerId) {
+        clearError(errorContainerId);
+        if (!email || !password) {
+            showError(errorContainerId, "请输入邮箱和密码");
+            return;
+        }
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+            if (error) throw error;
+            if (data.session) {
+                // 登录成功，session会自动触发 onAuthStateChange, 重新渲染
+                showSuccess(errorContainerId, "登录成功！");
+            }
+        } catch (err) {
+            showError(errorContainerId, err.message);
+        }
+    }
+
+    // 退出登录
+    async function handleLogout() {
+        await supabase.auth.signOut();
+        // 状态由监听器自动更新
+    }
+
+    // ---------- 渲染UI ----------
+    function renderApp() {
+        if (!appContainer) return;
+        // 判断用户是否登录
+        const isLoggedIn = !!currentSession?.user;
+        const user = currentSession?.user || null;
+
+        if (!isLoggedIn) {
+            // 渲染认证页面 (登录/注册切换)
+            renderAuthPage();
+        } else {
+            // 渲染已登录的主页 (发帖 + 帖子列表)
+            renderMainPage(user);
+        }
+    }
+
+    function renderAuthPage() {
+        const isLoginMode = authMode === 'login';
+        const containerHtml = `
+            <div class="card auth-card">
+                <h1 style="text-align: center;">📝 社区论坛</h1>
+                <p style="text-align: center; color: #6c757d; margin-bottom: 24px;">分享观点 · 连接彼此</p>
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <h2>${isLoginMode ? '登录账户' : '创建新账户'}</h2>
+                    <div id="authErrorMsg"></div>
+                    <div class="input-group">
+                        <label>电子邮箱</label>
+                        <input type="email" id="authEmail" placeholder="your@email.com" autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label>密码</label>
+                        <input type="password" id="authPassword" placeholder="密码 (至少6位)" autocomplete="current-password">
+                    </div>
+                    ${!isLoginMode ? `
+                        <div class="input-group">
+                            <label>确认密码</label>
+                            <input type="password" id="authConfirmPwd" placeholder="再次输入密码">
+                        </div>
+                    ` : ''}
+                    <button id="authSubmitBtn" style="width: 100%; margin-top: 8px;">${isLoginMode ? '登录' : '注册'}</button>
+                    <div class="auth-toggle">
+                        ${isLoginMode ? '还没有账号？' : '已有账号？'} 
+                        <a id="toggleAuthMode">${isLoginMode ? '立即注册' : '去登录'}</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        appContainer.innerHTML = containerHtml;
+
+        // 绑定事件
+        const submitBtn = document.getElementById('authSubmitBtn');
+        const toggleLink = document.getElementById('toggleAuthMode');
+        const emailInput = document.getElementById('authEmail');
+        const pwdInput = document.getElementById('authPassword');
+        const confirmInput = document.getElementById('authConfirmPwd');
+        
+        if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+                const email = emailInput?.value.trim() || '';
+                const password = pwdInput?.value || '';
+                if (isLoginMode) {
+                    await handleLogin(email, password, 'authErrorMsg');
+                } else {
+                    const confirmPwd = confirmInput?.value || '';
+                    await handleRegister(email, password, confirmPwd, 'authErrorMsg');
+                }
+            });
+        }
+        if (toggleLink) {
+            toggleLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                authMode = isLoginMode ? 'register' : 'login';
+                renderAuthPage();
+            });
+        }
+        // 按回车快速提交
+        const inputs = [emailInput, pwdInput, confirmInput].filter(Boolean);
+        inputs.forEach(inp => {
+            inp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitBtn?.click();
+            });
+        });
+    }
+
+    function renderMainPage(user) {
+        // 渲染发帖表单 + 帖子列表
+        const emailDisplay = user?.email || user?.user_email || '用户';
+        const postsHtml = postsList.length === 0 
+            ? `<div class="empty-state">📭 暂无帖子，成为第一个发帖的人吧！</div>`
+            : postsList.map(post => `
+                <div class="post-item">
+                    <div class="post-title">${escapeHtml(post.title)}</div>
+                    <div class="post-content">${escapeHtml(post.content)}</div>
+                    <div class="post-meta">
+                        <span>✍️ ${escapeHtml(post.user_email || '匿名')}</span>
+                        <span>📅 ${formatDate(post.created_at)}</span>
+                        ${post.user_id === user.id ? '<span class="badge">我的帖子</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+
+        const mainHtml = `
+            <div class="user-info">
+                <span class="user-email">👤 ${escapeHtml(emailDisplay)}</span>
+                <button id="logoutBtn" class="outline" style="padding: 6px 16px;">退出登录</button>
+            </div>
+            <div class="card post-form-card">
+                <h2>📝 发布新帖子</h2>
+                <div id="postFormError"></div>
+                <div class="input-group">
+                    <label>标题</label>
+                    <input type="text" id="postTitle" placeholder="给帖子起个响亮的标题" maxlength="100">
+                </div>
+                <div class="input-group">
+                    <label>内容</label>
+                    <textarea id="postContent" rows="4" placeholder="分享你的想法..." maxlength="2000"></textarea>
+                </div>
+                <div class="flex-row">
+                    <button id="publishBtn">✈️ 发布帖子</button>
+                    <button id="clearBtn" class="secondary" type="button">清空</button>
+                </div>
+            </div>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <h2>📌 最新帖子</h2>
+                    <span style="font-size: 0.7rem; background:#e2e8f0; padding:4px 12px; border-radius:30px;">${postsList.length} 篇</span>
+                </div>
+                <div id="postsListContainer">
+                    ${postsHtml}
+                </div>
+            </div>
+        `;
+        appContainer.innerHTML = mainHtml;
+
+        // 绑定发布事件
+        const publishBtn = document.getElementById('publishBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const titleInput = document.getElementById('postTitle');
+        const contentInput = document.getElementById('postContent');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (publishBtn) {
+            publishBtn.addEventListener('click', async () => {
+                const title = titleInput?.value || '';
+                const content = contentInput?.value || '';
+                const success = await createPost(title, content);
+                if (success) {
+                    // 清空表单
+                    if (titleInput) titleInput.value = '';
+                    if (contentInput) contentInput.value = '';
+                    showSuccess('postFormError', '帖子发布成功！');
+                    // 重新获取帖子并重绘已在createPost中调用fetchPosts，会触发renderApp
+                } else {
+                    showError('postFormError', '发布失败，请检查网络或内容');
+                }
+            });
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (titleInput) titleInput.value = '';
+                if (contentInput) contentInput.value = '';
+                clearError('postFormError');
+            });
+        }
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                handleLogout();
+            });
+        }
+    }
+
+    // 辅助函数: 防XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    function formatDate(isoString) {
+        if (!isoString) return '未知时间';
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return isoString;
+        return date.toLocaleString('zh-CN', { hour12: false });
+    }
+
+    // ---------- 额外确保数据表存在（检查并提示用户，如果表不存在需要手动建表）----------
+    async function ensureTableExists() {
+        // 由于 supabase anon key 权限通常不能随意创建表，但为了体验友好，尝试查询posts表是否存在，不存在则给用户提示。
+        try {
+            const { error } = await supabase.from('posts').select('id', { count: 'exact', head: true });
+            if (error && error.message.includes('relation') && error.message.includes('does not exist')) {
+                console.warn("posts表不存在，请按照指引创建表");
+                // 显示友好提示但不阻断，只是无法显示帖子，注册登录仍可用
+                const originalRender = renderApp;
+                window.renderApp = renderApp;
+                // 在页面顶部显示提示条
+                const toast = document.createElement('div');
+                toast.style.position = 'fixed';
+                toast.style.bottom = '20px';
+                toast.style.left = '20px';
+                toast.style.right = '20px';
+                toast.style.backgroundColor = '#f97316';
+                toast.style.color = 'white';
+                toast.style.padding = '12px';
+                toast.style.borderRadius = '32px';
+                toast.style.zIndex = '999';
+                toast.style.fontSize = '0.85rem';
+                toast.style.textAlign = 'center';
+                toast.innerHTML = '⚠️ 数据库缺少 "posts" 表，请前往 Supabase SQL Editor 执行建表语句（详见控制台或说明）';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 8000);
+            }
+        } catch(e) {}
+    }
+    
+    // 启动应用 & 执行建表建议输出到控制台帮助用户
+    function init() {
+        initAuthListener();
+        ensureTableExists();
+        // 输出帮助信息: 若表不存在, 请用户手动创建posts表
+        console.log(`
+        ==========  Supabase 配置提醒 ==========
+        如果遇到帖子无法发布或获取失败，请在 Supabase SQL Editor 中执行以下建表语句:
+        
+        CREATE TABLE IF NOT EXISTS posts (
+            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            user_id UUID NOT NULL,
+            user_email TEXT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        
+        -- 启用 RLS 并允许所有认证用户操作 (可根据需要调整)
+        ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "Enable all for authenticated users" ON posts
+            FOR ALL USING (auth.role() = 'authenticated');
+        CREATE POLICY "Enable read for everyone" ON posts
+            FOR SELECT USING (true);
+        =========================================
+        `);
+    }
+    init();
 </script>
 </body>
 </html>
