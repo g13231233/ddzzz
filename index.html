@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 多人BOSS战 - 炎魔领主</title>
+    <title>🔥 炎魔领主 · 多人讨伐战</title>
     <style>
         * {
             margin: 0;
@@ -14,43 +14,73 @@
 
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,107,107,0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         #app {
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
+            position: relative;
+            z-index: 1;
         }
 
         /* 通用卡片样式 */
         .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background: rgba(20, 20, 40, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         /* 登录/注册容器 */
         #auth-container {
             text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-logo {
+            font-size: 4em;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 30px rgba(255, 107, 107, 0.5));
         }
 
         #auth-container h2 {
             color: #ff6b6b;
-            font-size: 2.5em;
+            font-size: 2.8em;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+            letter-spacing: 2px;
         }
 
         #auth-container .subtitle {
             color: #aaa;
             margin-bottom: 30px;
+            font-size: 1.1em;
         }
 
         .input-group {
@@ -64,18 +94,20 @@
             font-size: 16px;
             border: none;
             border-radius: 50px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             outline: none;
             transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .input-group input::placeholder {
-            color: #aaa;
+            color: #666;
         }
 
         .input-group input:focus {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #ff6b6b;
             box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
         }
 
@@ -87,49 +119,52 @@
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 14px 32px;
             font-size: 16px;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #ff6b6b, #c0392b);
             color: white;
             box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.18);
         }
 
-        .btn-danger {
-            background: linear-gradient(135deg, #ff4757, #ff6b81);
+        .btn-success {
+            background: linear-gradient(135deg, #2ed573, #1e8c5c);
             color: white;
+            box-shadow: 0 5px 20px rgba(46, 213, 115, 0.3);
         }
 
         .btn-small {
-            padding: 8px 16px;
+            padding: 8px 18px;
             font-size: 14px;
         }
 
         /* 游戏主界面 */
         #game-container {
             display: none;
+            animation: fadeIn 0.5s ease;
         }
 
         .header {
@@ -137,6 +172,26 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(20, 20, 40, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .game-title {
+            color: #ff6b6b;
+            font-size: 1.5em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .user-info {
@@ -147,16 +202,68 @@
         }
 
         .user-email {
+            color: #ff9f43;
+        }
+
+        .player-stats {
+            display: flex;
+            gap: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 20px;
+            border-radius: 40px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #ddd;
+        }
+
+        .stat-value {
+            color: #ff9f43;
+            font-weight: bold;
+        }
+
+        /* 大厅导航 */
+        .lobby-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 30px 30px 0 0;
+            color: #888;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
             color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-bottom-color: #ff6b6b;
+        }
+
+        .tab-btn:hover {
+            color: #ff9f43;
+        }
+
+        .lobby-panel {
+            display: none;
+        }
+
+        .lobby-panel.active {
+            display: block;
         }
 
         /* 房间列表 */
-        #room-list-container h3, #battle-container h3 {
-            color: white;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
         .room-header {
             display: flex;
             justify-content: space-between;
@@ -164,38 +271,66 @@
             margin-bottom: 20px;
         }
 
+        .room-header h3 {
+            color: white;
+            font-size: 1.5em;
+        }
+
         .create-room {
             display: flex;
             gap: 10px;
         }
 
-        .create-room input {
+        .create-room input, .create-room select {
             padding: 10px 15px;
             border: none;
             border-radius: 50px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
             outline: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .create-room select option {
+            background: #1a1a3e;
         }
 
         .room-list {
             display: grid;
             gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .room-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .room-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .room-list::-webkit-scrollbar-thumb {
+            background: rgba(255,107,107,0.3);
+            border-radius: 10px;
         }
 
         .room-item {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
             padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.3s;
         }
 
         .room-item:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 107, 107, 0.3);
         }
 
         .room-info h4 {
@@ -207,7 +342,21 @@
         .room-info p {
             color: #aaa;
             font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
+
+        .room-difficulty {
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .difficulty-normal { background: #2ed573; color: white; }
+        .difficulty-hard { background: #ff9f43; color: white; }
+        .difficulty-hell { background: #ff6b6b; color: white; }
 
         .room-status {
             padding: 5px 15px;
@@ -216,24 +365,138 @@
             font-weight: bold;
         }
 
-        .status-waiting {
-            background: #2ed573;
-            color: white;
+        .status-waiting { background: #2ed573; color: white; }
+        .status-fighting { background: #ff6b6b; color: white; }
+        .status-ended { background: #747d8c; color: white; }
+
+        /* 角色面板 */
+        .character-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .status-fighting {
-            background: #ff6b6b;
-            color: white;
+        .character-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 107, 107, 0.2);
         }
 
-        .status-ended {
-            background: #747d8c;
+        .character-avatar {
+            font-size: 5em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.3));
+        }
+
+        .character-name {
+            color: #ff6b6b;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .character-stats {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ddd;
+        }
+
+        .upgrade-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .upgrade-title {
+            color: #ff9f43;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .upgrade-info h4 {
             color: white;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-info p {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .upgrade-cost {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* 商店面板 */
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .shop-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s;
+        }
+
+        .shop-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        .shop-item-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .shop-item-name {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-desc {
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        .shop-item-price {
+            color: #ffd700;
+            margin-bottom: 15px;
         }
 
         /* 战斗界面 */
         #battle-container {
             display: none;
+        }
+
+        .battle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
         .boss-section {
@@ -243,43 +506,69 @@
 
         .boss-name {
             color: #ff6b6b;
-            font-size: 2em;
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+        }
+
+        .boss-difficulty-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
         }
 
         .boss-avatar {
-            font-size: 6em;
+            font-size: 7em;
             margin-bottom: 20px;
-            filter: drop-shadow(0 0 30px rgba(255, 107, 107, 0.6));
+            filter: drop-shadow(0 0 40px rgba(255, 107, 107, 0.6));
             animation: bossFloat 3s ease-in-out infinite;
         }
 
         @keyframes bossFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-15px); }
         }
 
         .hp-bar-container {
             width: 100%;
-            height: 30px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
             overflow: hidden;
             margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .hp-bar {
             height: 100%;
-            background: linear-gradient(90deg, #ff6b6b, #ff9f43, #2ed573);
-            border-radius: 15px;
+            background: linear-gradient(90deg, #ff4757, #ff6b6b, #ff9f43, #2ed573);
+            border-radius: 20px;
             transition: width 0.3s ease;
             box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+            position: relative;
+        }
+
+        .hp-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: hpShine 2s infinite;
+        }
+
+        @keyframes hpShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         .boss-hp-text {
             color: white;
-            font-size: 1.2em;
+            font-size: 1.3em;
             font-weight: bold;
         }
 
@@ -291,26 +580,58 @@
         }
 
         .attack-btn {
-            padding: 20px 60px;
-            font-size: 1.5em;
+            padding: 20px 80px;
+            font-size: 1.6em;
             background: linear-gradient(135deg, #ff6b6b, #c0392b);
             color: white;
             border: none;
-            border-radius: 50px;
+            border-radius: 60px;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
             transition: all 0.3s;
             margin-bottom: 20px;
+            letter-spacing: 2px;
         }
 
         .attack-btn:hover:not(:disabled) {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.5);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+        }
+
+        .attack-btn:active:not(:disabled) {
+            transform: translateY(-2px);
         }
 
         .attack-btn:disabled {
             opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .skill-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .skill-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .skill-btn:hover:not(:disabled) {
+            background: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+        }
+
+        .skill-btn:disabled {
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
@@ -324,9 +645,11 @@
         }
 
         .ranking-list {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
             padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         .ranking-item {
@@ -344,6 +667,7 @@
         .ranking-rank {
             color: #ff9f43;
             font-weight: bold;
+            margin-right: 10px;
         }
 
         .ranking-damage {
@@ -351,41 +675,68 @@
             font-weight: bold;
         }
 
-        .battle-header {
+        /* 结算界面 */
+        .reward-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .reward-content {
+            background: linear-gradient(135deg, #1a1a3e, #0d1b2a);
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            animation: modalPop 0.5s ease;
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .reward-title {
+            color: #ffd700;
+            font-size: 2.5em;
             margin-bottom: 20px;
         }
 
-        .player-count {
-            color: #aaa;
+        .reward-list {
+            margin: 30px 0;
         }
 
-        .back-btn {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .reward-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             color: white;
-            padding: 8px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .victory-message {
-            text-align: center;
-            color: #2ed573;
-            font-size: 2em;
-            margin: 20px 0;
-            text-shadow: 0 0 20px rgba(46, 213, 115, 0.5);
+        .reward-value {
+            color: #ffd700;
+            font-weight: bold;
         }
 
         .error-message {
             color: #ff6b6b;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .success-message {
+            color: #2ed573;
             margin-top: 10px;
             font-size: 0.9em;
         }
@@ -409,14 +760,45 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .damage-popup {
+            position: absolute;
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px rgba(255,107,107,0.8);
+            animation: damageFloat 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes damageFloat {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ff6b6b;
+        }
     </style>
 </head>
 <body>
     <div id="app">
         <!-- 登录注册界面 -->
         <div id="auth-container" class="card">
-            <h2>🔥 炎魔领主</h2>
-            <p class="subtitle">多人协作BOSS战</p>
+            <div class="game-logo">👹</div>
+            <h2>炎魔领主</h2>
+            <p class="subtitle">多人协作 · 讨伐恶龙</p>
             <div class="input-group">
                 <input type="email" id="email" placeholder="邮箱" />
             </div>
@@ -435,21 +817,52 @@
 
         <!-- 游戏主界面 -->
         <div id="game-container">
+            <!-- 顶部栏 -->
             <div class="header">
-                <h2 style="color: #ff6b6b;">🔥 炎魔领主·多人讨伐</h2>
+                <div class="header-left">
+                    <div class="game-title">
+                        <span>👹</span> 炎魔领主
+                    </div>
+                    <div class="player-stats">
+                        <div class="stat-item">
+                            <span>💰</span>
+                            <span class="stat-value" id="gold-display">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>💎</span>
+                            <span class="stat-value" id="soul-display">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>⚔️</span>
+                            <span class="stat-value" id="atk-display">100</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="user-info">
                     <span>欢迎，<span id="user-email" class="user-email"></span></span>
                     <button class="btn btn-secondary btn-small" id="logout-btn">登出</button>
                 </div>
             </div>
 
-            <!-- 房间列表界面 -->
-            <div id="room-list-container" class="card">
+            <!-- 大厅标签页 -->
+            <div class="lobby-tabs">
+                <button class="tab-btn active" data-tab="rooms">🏠 讨伐大厅</button>
+                <button class="tab-btn" data-tab="character">⚔️ 角色强化</button>
+                <button class="tab-btn" data-tab="shop">🛒 神秘商店</button>
+            </div>
+
+            <!-- 讨伐大厅 -->
+            <div id="rooms-panel" class="lobby-panel active card">
                 <div class="room-header">
-                    <h3>📋 讨伐房间</h3>
+                    <h3>📋 讨伐队伍</h3>
                     <div class="create-room">
-                        <input type="text" id="room-name-input" placeholder="房间名称" maxlength="20" />
-                        <button class="btn btn-primary btn-small" id="create-room-btn">创建房间</button>
+                        <input type="text" id="room-name-input" placeholder="队伍名称" maxlength="20" />
+                        <select id="difficulty-select">
+                            <option value="normal">普通</option>
+                            <option value="hard">困难</option>
+                            <option value="hell">地狱</option>
+                        </select>
+                        <button class="btn btn-primary btn-small" id="create-room-btn">创建队伍</button>
                     </div>
                 </div>
                 <div id="room-list" class="room-list">
@@ -457,28 +870,133 @@
                 </div>
             </div>
 
+            <!-- 角色强化 -->
+            <div id="character-panel" class="lobby-panel card">
+                <div class="character-panel">
+                    <div class="character-card">
+                        <div class="character-avatar">🧙</div>
+                        <div class="character-name" id="character-name">勇者</div>
+                        <div class="character-stats">
+                            <div class="stat-row">
+                                <span>攻击力</span>
+                                <span id="stat-atk">100</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>暴击率</span>
+                                <span id="stat-crit">5%</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>暴击伤害</span>
+                                <span id="stat-crit-dmg">150%</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>攻击速度</span>
+                                <span id="stat-speed">1.0x</span>
+                            </div>
+                        </div>
+                        <p style="color: #888; margin-top: 15px;">🏆 讨伐次数: <span id="hunt-count">0</span></p>
+                    </div>
+                    <div class="upgrade-section">
+                        <div class="upgrade-title">⚡ 强化能力</div>
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <h4>攻击力 +10</h4>
+                                <p>当前: <span id="upgrade-atk">100</span></p>
+                            </div>
+                            <div>
+                                <span class="upgrade-cost">💰 <span id="atk-cost">100</span></span>
+                                <button class="btn btn-success btn-small upgrade-btn" data-type="atk" style="margin-left: 10px;">升级</button>
+                            </div>
+                        </div>
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <h4>暴击率 +1%</h4>
+                                <p>当前: <span id="upgrade-crit">5%</span></p>
+                            </div>
+                            <div>
+                                <span class="upgrade-cost">💎 <span id="crit-cost">50</span></span>
+                                <button class="btn btn-success btn-small upgrade-btn" data-type="crit" style="margin-left: 10px;">升级</button>
+                            </div>
+                        </div>
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <h4>暴击伤害 +10%</h4>
+                                <p>当前: <span id="upgrade-crit-dmg">150%</span></p>
+                            </div>
+                            <div>
+                                <span class="upgrade-cost">💎 <span id="crit-dmg-cost">80</span></span>
+                                <button class="btn btn-success btn-small upgrade-btn" data-type="critDmg" style="margin-left: 10px;">升级</button>
+                            </div>
+                        </div>
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <h4>攻击速度 +0.1x</h4>
+                                <p>当前: <span id="upgrade-speed">1.0x</span></p>
+                            </div>
+                            <div>
+                                <span class="upgrade-cost">💰 <span id="speed-cost">200</span></span>
+                                <button class="btn btn-success btn-small upgrade-btn" data-type="speed" style="margin-left: 10px;">升级</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 神秘商店 -->
+            <div id="shop-panel" class="lobby-panel card">
+                <h3 style="color: white; margin-bottom: 20px;">🛒 神秘商店</h3>
+                <div class="shop-items">
+                    <div class="shop-item">
+                        <div class="shop-item-icon">💊</div>
+                        <div class="shop-item-name">生命药水</div>
+                        <div class="shop-item-desc">战斗中使用回复20%HP</div>
+                        <div class="shop-item-price">💰 50</div>
+                        <button class="btn btn-primary btn-small buy-btn" data-item="potion">购买</button>
+                    </div>
+                    <div class="shop-item">
+                        <div class="shop-item-icon">⚡</div>
+                        <div class="shop-item-name">力量卷轴</div>
+                        <div class="shop-item-desc">下次攻击伤害x2</div>
+                        <div class="shop-item-price">💎 30</div>
+                        <button class="btn btn-primary btn-small buy-btn" data-item="scroll">购买</button>
+                    </div>
+                    <div class="shop-item">
+                        <div class="shop-item-icon">🛡️</div>
+                        <div class="shop-item-name">护身符</div>
+                        <div class="shop-item-desc">永久+5攻击力</div>
+                        <div class="shop-item-price">💎 100</div>
+                        <button class="btn btn-primary btn-small buy-btn" data-item="charm">购买</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 战斗界面 -->
             <div id="battle-container" class="card">
                 <div class="battle-header">
-                    <button class="back-btn" id="leave-battle-btn">← 返回房间列表</button>
+                    <button class="back-btn" id="leave-battle-btn">← 返回大厅</button>
                     <span class="player-count" id="player-count">👥 0 人战斗中</span>
                 </div>
                 
                 <div class="boss-section">
                     <div class="boss-name" id="boss-name">炎魔领主</div>
-                    <div class="boss-avatar">👹</div>
+                    <div class="boss-difficulty-badge" id="boss-difficulty">普通</div>
+                    <div class="boss-avatar" id="boss-avatar">👹</div>
                     <div class="hp-bar-container">
                         <div id="boss-hp-bar" class="hp-bar" style="width: 100%;"></div>
                     </div>
                     <div class="boss-hp-text" id="boss-hp-text">10000 / 10000</div>
                 </div>
 
-                <div id="victory-message" class="victory-message" style="display: none;">
+                <div id="victory-message" class="victory-message" style="display: none; text-align: center;">
                     🎉 胜利！炎魔领主已被击败！ 🎉
                 </div>
 
                 <div class="player-section">
-                    <button class="attack-btn" id="attack-btn">⚔️ 攻击 (100伤害)</button>
+                    <button class="attack-btn" id="attack-btn">⚔️ 攻击</button>
+                    <div class="skill-bar">
+                        <button class="skill-btn" id="skill1-btn" disabled>💥 重击 (冷却中)</button>
+                        <button class="skill-btn" id="skill2-btn" disabled>💊 生命药水</button>
+                    </div>
                     <div class="my-damage">
                         我的输出: <span id="my-damage">0</span> 伤害
                     </div>
@@ -494,44 +1012,44 @@
         </div>
     </div>
 
+    <!-- 结算弹窗 -->
+    <div id="reward-modal" class="reward-modal" style="display: none;">
+        <div class="reward-content">
+            <div class="reward-title" id="reward-title">🏆 讨伐成功！</div>
+            <div class="reward-list">
+                <div class="reward-item">
+                    <span>💰 金币</span>
+                    <span class="reward-value" id="reward-gold">0</span>
+                </div>
+                <div class="reward-item">
+                    <span>💎 灵魂石</span>
+                    <span class="reward-value" id="reward-soul">0</span>
+                </div>
+                <div class="reward-item">
+                    <span>📊 伤害排名</span>
+                    <span class="reward-value" id="reward-rank">-</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="claim-reward-btn">领取奖励</button>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
-        // Firebase 配置
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { 
-            getAuth, 
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged
+            getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+            signOut, onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { 
-            getFirestore,
-            collection,
-            addDoc,
-            doc,
-            updateDoc,
-            onSnapshot,
-            query,
-            orderBy,
-            serverTimestamp,
-            arrayUnion,
-            deleteDoc,
-            writeBatch,
-            getDocs,
-            where
+            getFirestore, collection, addDoc, doc, updateDoc, onSnapshot,
+            query, orderBy, serverTimestamp, arrayUnion, getDocs, where,
+            setDoc, getDoc, increment, deleteDoc
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { 
-            getDatabase,
-            ref,
-            set,
-            remove,
-            onValue,
-            runTransaction,
-            onDisconnect
+            getDatabase, ref, set, remove, onValue, runTransaction, onDisconnect
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-        // 你的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
             authDomain: "durango110.firebaseapp.com",
@@ -542,35 +1060,36 @@
             databaseURL: "https://durango110-default-rtdb.asia-southeast1.firebasedatabase.app"
         };
 
-        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const rtdb = getDatabase(app);
 
         // 游戏配置
-        const BOSS_MAX_HP = 10000;
-        const ATTACK_DAMAGE = 100;
-        const ATTACK_COOLDOWN = 500;
+        const DIFFICULTY_CONFIG = {
+            normal: { name: '普通', hp: 10000, gold: 100, soul: 20, bossEmoji: '👹' },
+            hard: { name: '困难', hp: 25000, gold: 250, soul: 50, bossEmoji: '🔥' },
+            hell: { name: '地狱', hp: 50000, gold: 500, soul: 100, bossEmoji: '💀' }
+        };
+
+        const ATTACK_COOLDOWN = 300;
+        const SKILL_COOLDOWN = 5000;
 
         // 全局状态
         let currentUser = null;
         let currentRoom = null;
+        let playerData = null;
         let canAttack = true;
+        let skill1Ready = false;
+        let skill1Cooldown = 0;
         let battleUnsubscribe = null;
         let roomsUnsubscribe = null;
+        let inventory = { potion: 0, scroll: 0 };
 
         // DOM 元素
         const authContainer = document.getElementById('auth-container');
         const gameContainer = document.getElementById('game-container');
-        const roomListContainer = document.getElementById('room-list-container');
-        const battleContainer = document.getElementById('battle-container');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const authError = document.getElementById('auth-error');
-        const userEmailSpan = document.getElementById('user-email');
         const roomList = document.getElementById('room-list');
-        const roomNameInput = document.getElementById('room-name-input');
         const bossHpBar = document.getElementById('boss-hp-bar');
         const bossHpText = document.getElementById('boss-hp-text');
         const myDamageSpan = document.getElementById('my-damage');
@@ -578,11 +1097,21 @@
         const playerCountSpan = document.getElementById('player-count');
         const victoryMessage = document.getElementById('victory-message');
         const attackBtn = document.getElementById('attack-btn');
+        const skill1Btn = document.getElementById('skill1-btn');
+        const skill2Btn = document.getElementById('skill2-btn');
+        const rewardModal = document.getElementById('reward-modal');
+        const authError = document.getElementById('auth-error');
+        const userEmailSpan = document.getElementById('user-email');
+
+        // 难度系数
+        const difficultyMap = { normal: 1, hard: 2.5, hell: 5 };
+        const difficultyNames = { normal: '普通', hard: '困难', hell: '地狱' };
+        const difficultyEmojis = { normal: '👹', hard: '🔥', hell: '💀' };
 
         // ============ 认证相关 ============
         async function handleRegister() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
             
             if (!email || !password) {
                 authError.textContent = '请输入邮箱和密码';
@@ -595,15 +1124,17 @@
             
             try {
                 authError.textContent = '';
-                await createUserWithEmailAndPassword(auth, email, password);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                // 初始化玩家数据
+                await initializePlayerData(userCredential.user);
             } catch (error) {
                 authError.textContent = getAuthErrorMessage(error.code);
             }
         }
 
         async function handleLogin() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
             
             if (!email || !password) {
                 authError.textContent = '请输入邮箱和密码';
@@ -620,9 +1151,7 @@
 
         async function handleLogout() {
             try {
-                if (currentRoom) {
-                    await leaveRoom();
-                }
+                if (currentRoom) await leaveRoom();
                 await signOut(auth);
             } catch (error) {
                 console.error('登出失败:', error);
@@ -632,35 +1161,174 @@
         function getAuthErrorMessage(code) {
             const messages = {
                 'auth/invalid-email': '邮箱格式不正确',
-                'auth/user-disabled': '该账号已被禁用',
                 'auth/user-not-found': '账号不存在',
                 'auth/wrong-password': '密码错误',
                 'auth/email-already-in-use': '该邮箱已被注册',
-                'auth/weak-password': '密码强度不足',
-                'auth/network-request-failed': '网络连接失败',
-                'auth/too-many-requests': '请求过于频繁，请稍后再试'
+                'auth/weak-password': '密码强度不足'
             };
             return messages[code] || '操作失败，请重试';
         }
 
-        // ============ 房间相关 ============
-        async function createRoom() {
-            const roomName = roomNameInput.value.trim() || `${currentUser.email?.split('@')[0] || '玩家'}的房间`;
+        // ============ 玩家数据 ============
+        async function initializePlayerData(user) {
+            const playerRef = doc(db, "players", user.uid);
+            const playerSnap = await getDoc(playerRef);
+            if (!playerSnap.exists()) {
+                await setDoc(playerRef, {
+                    email: user.email,
+                    gold: 100,
+                    soul: 20,
+                    attack: 100,
+                    critRate: 5,
+                    critDamage: 150,
+                    attackSpeed: 1.0,
+                    huntCount: 0,
+                    inventory: { potion: 0, scroll: 0 },
+                    createdAt: serverTimestamp()
+                });
+            }
+        }
+
+        async function loadPlayerData() {
+            if (!currentUser) return;
+            const playerRef = doc(db, "players", currentUser.uid);
+            const playerSnap = await getDoc(playerRef);
+            if (playerSnap.exists()) {
+                playerData = playerSnap.data();
+                inventory = playerData.inventory || { potion: 0, scroll: 0 };
+                updatePlayerUI();
+            }
+        }
+
+        function updatePlayerUI() {
+            if (!playerData) return;
+            document.getElementById('gold-display').textContent = playerData.gold || 0;
+            document.getElementById('soul-display').textContent = playerData.soul || 0;
+            document.getElementById('atk-display').textContent = playerData.attack || 100;
+            
+            document.getElementById('stat-atk').textContent = playerData.attack || 100;
+            document.getElementById('stat-crit').textContent = (playerData.critRate || 5) + '%';
+            document.getElementById('stat-crit-dmg').textContent = (playerData.critDamage || 150) + '%';
+            document.getElementById('stat-speed').textContent = (playerData.attackSpeed || 1.0).toFixed(1) + 'x';
+            document.getElementById('hunt-count').textContent = playerData.huntCount || 0;
+            
+            document.getElementById('upgrade-atk').textContent = playerData.attack || 100;
+            document.getElementById('upgrade-crit').textContent = (playerData.critRate || 5) + '%';
+            document.getElementById('upgrade-crit-dmg').textContent = (playerData.critDamage || 150) + '%';
+            document.getElementById('upgrade-speed').textContent = (playerData.attackSpeed || 1.0).toFixed(1) + 'x';
+            
+            // 更新升级费用
+            document.getElementById('atk-cost').textContent = 100 + (playerData.attack - 100) * 2;
+            document.getElementById('crit-cost').textContent = 50 + (playerData.critRate - 5) * 10;
+            document.getElementById('crit-dmg-cost').textContent = 80 + (playerData.critDamage - 150) * 5;
+            document.getElementById('speed-cost').textContent = 200 + ((playerData.attackSpeed - 1) * 10) * 30;
+        }
+
+        // ============ 升级系统 ============
+        async function handleUpgrade(type) {
+            if (!playerData) return;
+            
+            const upgrades = {
+                atk: { cost: 100 + (playerData.attack - 100) * 2, currency: 'gold', field: 'attack', increment: 10, max: 500 },
+                crit: { cost: 50 + (playerData.critRate - 5) * 10, currency: 'soul', field: 'critRate', increment: 1, max: 50 },
+                critDmg: { cost: 80 + (playerData.critDamage - 150) * 5, currency: 'soul', field: 'critDamage', increment: 10, max: 300 },
+                speed: { cost: 200 + ((playerData.attackSpeed - 1) * 10) * 30, currency: 'gold', field: 'attackSpeed', increment: 0.1, max: 3.0 }
+            };
+            
+            const config = upgrades[type];
+            if (!config) return;
+            
+            const currentValue = playerData[config.field];
+            if (currentValue >= config.max) {
+                alert('已达最大等级！');
+                return;
+            }
+            
+            if (playerData[config.currency] < config.cost) {
+                alert(config.currency === 'gold' ? '金币不足！' : '灵魂石不足！');
+                return;
+            }
             
             try {
-                // 创建房间 - 修复：不使用 serverTimestamp 在数组中
+                const playerRef = doc(db, "players", currentUser.uid);
+                const newValue = Math.min(currentValue + config.increment, config.max);
+                await updateDoc(playerRef, {
+                    [config.field]: newValue,
+                    [config.currency]: increment(-config.cost)
+                });
+                
+                playerData[config.field] = newValue;
+                playerData[config.currency] -= config.cost;
+                updatePlayerUI();
+            } catch (error) {
+                console.error('升级失败:', error);
+            }
+        }
+
+        // ============ 商店系统 ============
+        async function handleBuy(item) {
+            if (!playerData) return;
+            
+            const items = {
+                potion: { cost: 50, currency: 'gold' },
+                scroll: { cost: 30, currency: 'soul' },
+                charm: { cost: 100, currency: 'soul', effect: () => handleUpgrade('atk') }
+            };
+            
+            const config = items[item];
+            if (!config) return;
+            
+            if (playerData[config.currency] < config.cost) {
+                alert(config.currency === 'gold' ? '金币不足！' : '灵魂石不足！');
+                return;
+            }
+            
+            try {
+                const playerRef = doc(db, "players", currentUser.uid);
+                
+                if (item === 'charm') {
+                    await config.effect();
+                    await updateDoc(playerRef, { soul: increment(-config.cost) });
+                    playerData.soul -= config.cost;
+                } else {
+                    const newInventory = { ...inventory };
+                    newInventory[item] = (newInventory[item] || 0) + 1;
+                    await updateDoc(playerRef, {
+                        [config.currency]: increment(-config.cost),
+                        inventory: newInventory
+                    });
+                    playerData[config.currency] -= config.cost;
+                    inventory = newInventory;
+                }
+                
+                updatePlayerUI();
+                alert('购买成功！');
+            } catch (error) {
+                console.error('购买失败:', error);
+            }
+        }
+
+        // ============ 房间相关 ============
+        async function createRoom() {
+            const roomName = document.getElementById('room-name-input').value.trim() || `${currentUser.email?.split('@')[0]}的队伍`;
+            const difficulty = document.getElementById('difficulty-select').value;
+            const bossConfig = DIFFICULTY_CONFIG[difficulty];
+            
+            try {
                 const roomRef = await addDoc(collection(db, "rooms"), {
                     name: roomName,
                     hostId: currentUser.uid,
                     hostEmail: currentUser.email,
-                    bossHp: BOSS_MAX_HP,
-                    maxHp: BOSS_MAX_HP,
+                    difficulty: difficulty,
+                    bossName: difficulty === 'normal' ? '炎魔领主' : difficulty === 'hard' ? '炎魔之王' : '灭世炎魔',
+                    bossHp: bossConfig.hp,
+                    maxHp: bossConfig.hp,
+                    bossEmoji: bossConfig.bossEmoji,
                     status: 'waiting',
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
+                    rewards: { gold: bossConfig.gold, soul: bossConfig.soul },
+                    createdAt: serverTimestamp()
                 });
 
-                // 单独创建玩家子集合
                 const playersRef = collection(db, "rooms", roomRef.id, "players");
                 await addDoc(playersRef, {
                     uid: currentUser.uid,
@@ -669,10 +1337,11 @@
                     joinedAt: serverTimestamp()
                 });
 
-                // 初始化实时战斗数据
                 const battleRef = ref(rtdb, `battles/${roomRef.id}`);
                 await set(battleRef, {
-                    bossHp: BOSS_MAX_HP,
+                    bossHp: bossConfig.hp,
+                    maxHp: bossConfig.hp,
+                    difficulty: difficulty,
                     playerDamage: {},
                     players: {
                         [currentUser.uid]: {
@@ -683,11 +1352,11 @@
                     }
                 });
 
-                roomNameInput.value = '';
+                document.getElementById('room-name-input').value = '';
                 await enterRoom(roomRef.id);
             } catch (error) {
                 console.error('创建房间失败:', error);
-                alert('创建房间失败: ' + error.message);
+                alert('创建失败: ' + error.message);
             }
         }
 
@@ -695,24 +1364,19 @@
             try {
                 await enterRoom(roomId);
             } catch (error) {
-                console.error('加入房间失败:', error);
-                alert('加入房间失败: ' + error.message);
+                alert('加入失败: ' + error.message);
             }
         }
 
         async function enterRoom(roomId) {
-            if (currentRoom) {
-                await leaveRoom();
-            }
+            if (currentRoom) await leaveRoom();
 
             try {
-                // 检查玩家是否已在房间中
                 const playersRef = collection(db, "rooms", roomId, "players");
                 const playerQuery = query(playersRef, where("uid", "==", currentUser.uid));
                 const playerSnapshot = await getDocs(playerQuery);
                 
                 if (playerSnapshot.empty) {
-                    // 添加玩家到房间
                     await addDoc(playersRef, {
                         uid: currentUser.uid,
                         email: currentUser.email,
@@ -721,7 +1385,6 @@
                     });
                 }
 
-                // 更新 Realtime DB 中的在线玩家
                 const playerRef = ref(rtdb, `battles/${roomId}/players/${currentUser.uid}`);
                 await set(playerRef, {
                     email: currentUser.email,
@@ -729,17 +1392,32 @@
                     damage: 0
                 });
 
-                // 设置断线自动清理
                 onDisconnect(playerRef).update({ online: false });
 
                 currentRoom = roomId;
                 
-                roomListContainer.style.display = 'none';
-                battleContainer.style.display = 'block';
+                document.querySelectorAll('.lobby-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('rooms-panel').style.display = 'none';
+                document.getElementById('battle-container').style.display = 'block';
                 victoryMessage.style.display = 'none';
+                
+                // 加载房间信息
+                const roomRef = doc(db, "rooms", roomId);
+                const roomSnap = await getDoc(roomRef);
+                if (roomSnap.exists()) {
+                    const data = roomSnap.data();
+                    document.getElementById('boss-name').textContent = data.bossName || '炎魔领主';
+                    document.getElementById('boss-avatar').textContent = data.bossEmoji || '👹';
+                    const diffName = difficultyNames[data.difficulty] || '普通';
+                    document.getElementById('boss-difficulty').textContent = diffName;
+                    document.getElementById('boss-difficulty').className = `boss-difficulty-badge difficulty-${data.difficulty}`;
+                }
                 
                 listenBattle(roomId);
                 listenRoomStatus(roomId);
+                
+                // 初始化技能状态
+                updateSkillButtons();
                 
             } catch (error) {
                 console.error('进入房间失败:', error);
@@ -749,21 +1427,16 @@
 
         async function leaveRoom() {
             if (!currentRoom) return;
-
             try {
-                // 更新在线状态为离线
                 const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser.uid}`);
                 await remove(playerRef);
-                
             } catch (error) {
                 console.error('离开房间失败:', error);
             }
-
             if (battleUnsubscribe) {
                 battleUnsubscribe();
                 battleUnsubscribe = null;
             }
-
             currentRoom = null;
         }
 
@@ -773,7 +1446,6 @@
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     if (data.status === 'ended') {
-                        alert('战斗已结束！');
                         backToRoomList();
                     }
                 }
@@ -782,41 +1454,53 @@
 
         async function backToRoomList() {
             await leaveRoom();
-            battleContainer.style.display = 'none';
-            roomListContainer.style.display = 'block';
+            document.getElementById('battle-container').style.display = 'none';
+            document.getElementById('rooms-panel').style.display = 'block';
         }
 
         // ============ 战斗相关 ============
         function listenBattle(roomId) {
             const battleRef = ref(rtdb, `battles/${roomId}`);
             
-            battleUnsubscribe = onValue(battleRef, (snapshot) => {
+            battleUnsubscribe = onValue(battleRef, async (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
 
                 updateBattleUI(data);
                 
-                if (data.bossHp <= 0) {
-                    handleBossDefeated(roomId);
+                if (data.bossHp <= 0 && data.status !== 'ended') {
+                    await handleBossDefeated(roomId, data);
                 }
             });
         }
 
         function updateBattleUI(data) {
-            const bossHp = data.bossHp || BOSS_MAX_HP;
-            const hpPercent = (bossHp / BOSS_MAX_HP) * 100;
+            const maxHp = data.maxHp || 10000;
+            const bossHp = data.bossHp || maxHp;
+            const hpPercent = (bossHp / maxHp) * 100;
             const myDamage = data.playerDamage?.[currentUser.uid] || 0;
             const players = data.players || {};
             const onlineCount = Object.values(players).filter(p => p.online).length;
 
             bossHpBar.style.width = Math.max(0, hpPercent) + '%';
-            bossHpText.textContent = `${Math.max(0, bossHp)} / ${BOSS_MAX_HP}`;
+            bossHpText.textContent = `${Math.max(0, bossHp)} / ${maxHp}`;
             myDamageSpan.textContent = myDamage;
             playerCountSpan.textContent = `👥 ${onlineCount} 人战斗中`;
             
             updateRanking(data.playerDamage || {}, players);
             
-            attackBtn.disabled = bossHp <= 0;
+            const isDead = bossHp <= 0;
+            attackBtn.disabled = isDead;
+            updateSkillButtons(isDead);
+        }
+
+        function updateSkillButtons(isDead = false) {
+            skill1Btn.disabled = isDead || !skill1Ready;
+            skill1Btn.textContent = skill1Ready ? '💥 重击 (200%伤害)' : `⏳ 冷却中`;
+            
+            const hasPotion = inventory.potion > 0;
+            skill2Btn.disabled = isDead || !hasPotion;
+            skill2Btn.textContent = hasPotion ? `💊 生命药水 (${inventory.potion})` : '💊 无药水';
         }
 
         function updateRanking(damages, players) {
@@ -836,10 +1520,11 @@
 
             damageRanking.innerHTML = ranking.map((item, index) => {
                 const isMe = item.uid === currentUser.uid;
+                const medals = ['🥇', '🥈', '🥉'];
                 return `
                     <div class="ranking-item" style="${isMe ? 'background: rgba(255, 107, 107, 0.2);' : ''}">
                         <span>
-                            <span class="ranking-rank">#${index + 1}</span>
+                            <span class="ranking-rank">${index < 3 ? medals[index] : `#${index + 1}`}</span>
                             ${item.email.split('@')[0]}
                             ${isMe ? ' (我)' : ''}
                         </span>
@@ -856,62 +1541,165 @@
             attackBtn.disabled = true;
             
             try {
+                let damage = playerData.attack || 100;
+                
+                // 暴击判定
+                if (Math.random() * 100 < (playerData.critRate || 5)) {
+                    damage = Math.floor(damage * (playerData.critDamage || 150) / 100);
+                    showDamagePopup('暴击! ' + damage, '#ffd700');
+                } else {
+                    showDamagePopup('-' + damage, '#ff6b6b');
+                }
+                
                 const hpRef = ref(rtdb, `battles/${currentRoom}/bossHp`);
                 const damageRef = ref(rtdb, `battles/${currentRoom}/playerDamage/${currentUser.uid}`);
                 
                 await runTransaction(hpRef, (currentHp) => {
-                    if (currentHp === null) return BOSS_MAX_HP;
-                    return Math.max(0, currentHp - ATTACK_DAMAGE);
+                    if (currentHp === null) return null;
+                    return Math.max(0, currentHp - damage);
                 });
                 
                 await runTransaction(damageRef, (currentDamage) => {
-                    return (currentDamage || 0) + ATTACK_DAMAGE;
+                    return (currentDamage || 0) + damage;
                 });
                 
-                // 同步更新 Firestore
-                const playersRef = collection(db, "rooms", currentRoom, "players");
-                const playerQuery = query(playersRef, where("uid", "==", currentUser.uid));
-                const playerSnapshot = await getDocs(playerQuery);
-                
-                playerSnapshot.forEach(async (docSnap) => {
-                    await updateDoc(docSnap.ref, {
-                        damage: (docSnap.data().damage || 0) + ATTACK_DAMAGE
-                    });
-                });
-                
-                document.querySelector('.boss-avatar').style.transform = 'scale(1.1)';
+                // 攻击动画
+                const avatar = document.querySelector('.boss-avatar');
+                avatar.style.transform = 'scale(1.15)';
+                avatar.style.filter = 'drop-shadow(0 0 40px rgba(255, 107, 107, 0.8))';
                 setTimeout(() => {
-                    document.querySelector('.boss-avatar').style.transform = 'scale(1)';
+                    avatar.style.transform = 'scale(1)';
+                    avatar.style.filter = 'drop-shadow(0 0 40px rgba(255, 107, 107, 0.6))';
                 }, 100);
                 
             } catch (error) {
                 console.error('攻击失败:', error);
             }
             
+            const cooldownTime = ATTACK_COOLDOWN / (playerData.attackSpeed || 1.0);
             setTimeout(() => {
                 canAttack = true;
-                const bossHp = bossHpBar.style.width;
-                if (bossHp !== '0%') {
+                if (bossHpBar.style.width !== '0%') {
                     attackBtn.disabled = false;
                 }
-            }, ATTACK_COOLDOWN);
+            }, cooldownTime);
         }
 
-        async function handleBossDefeated(roomId) {
+        function showDamagePopup(text, color) {
+            const popup = document.createElement('div');
+            popup.className = 'damage-popup';
+            popup.textContent = text;
+            popup.style.color = color;
+            popup.style.left = '50%';
+            popup.style.top = '40%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            document.querySelector('.boss-section').appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+        }
+
+        async function handleSkill1() {
+            if (!currentRoom || !skill1Ready) return;
+            
+            skill1Ready = false;
+            updateSkillButtons();
+            
+            let damage = (playerData.attack || 100) * 2;
+            
+            // 暴击判定
+            if (Math.random() * 100 < (playerData.critRate || 5)) {
+                damage = Math.floor(damage * (playerData.critDamage || 150) / 100);
+                showDamagePopup('重击暴击! ' + damage, '#ffd700');
+            } else {
+                showDamagePopup('重击! -' + damage, '#ff6b6b');
+            }
+            
+            const hpRef = ref(rtdb, `battles/${currentRoom}/bossHp`);
+            const damageRef = ref(rtdb, `battles/${currentRoom}/playerDamage/${currentUser.uid}`);
+            
+            await runTransaction(hpRef, (currentHp) => Math.max(0, currentHp - damage));
+            await runTransaction(damageRef, (currentDamage) => (currentDamage || 0) + damage);
+            
+            // 冷却
+            setTimeout(() => {
+                skill1Ready = true;
+                updateSkillButtons();
+            }, SKILL_COOLDOWN);
+        }
+
+        async function handleSkill2() {
+            if (!currentRoom || inventory.potion <= 0) return;
+            
+            inventory.potion--;
+            
+            // 更新库存到数据库
+            const playerRef = doc(db, "players", currentUser.uid);
+            await updateDoc(playerRef, { inventory });
+            
+            // 回复效果（这里简单处理，显示治疗效果）
+            showDamagePopup('生命恢复!', '#2ed573');
+            
+            updateSkillButtons();
+        }
+
+        async function handleBossDefeated(roomId, battleData) {
             victoryMessage.style.display = 'block';
             attackBtn.disabled = true;
+            skill1Btn.disabled = true;
+            skill2Btn.disabled = true;
             
             try {
-                await updateDoc(doc(db, "rooms", roomId), {
+                const roomRef = doc(db, "rooms", roomId);
+                const roomSnap = await getDoc(roomRef);
+                const roomData = roomSnap.data();
+                
+                // 计算排名和奖励
+                const damages = battleData.playerDamage || {};
+                const sortedDamages = Object.entries(damages).sort((a, b) => b[1] - a[1]);
+                const myRank = sortedDamages.findIndex(([uid]) => uid === currentUser.uid) + 1;
+                
+                let rewardGold = roomData.rewards?.gold || 100;
+                let rewardSoul = roomData.rewards?.soul || 20;
+                
+                // 排名奖励
+                if (myRank === 1) {
+                    rewardGold = Math.floor(rewardGold * 1.5);
+                    rewardSoul = Math.floor(rewardSoul * 1.5);
+                } else if (myRank <= 3) {
+                    rewardGold = Math.floor(rewardGold * 1.2);
+                    rewardSoul = Math.floor(rewardSoul * 1.2);
+                }
+                
+                // 更新房间状态
+                await updateDoc(roomRef, {
                     status: 'ended',
-                    updatedAt: serverTimestamp()
+                    endedAt: serverTimestamp()
                 });
+                
+                // 更新玩家数据
+                const playerRef = doc(db, "players", currentUser.uid);
+                await updateDoc(playerRef, {
+                    gold: increment(rewardGold),
+                    soul: increment(rewardSoul),
+                    huntCount: increment(1)
+                });
+                
+                playerData.gold += rewardGold;
+                playerData.soul += rewardSoul;
+                playerData.huntCount++;
+                updatePlayerUI();
+                
+                // 显示奖励弹窗
+                document.getElementById('reward-gold').textContent = '+' + rewardGold;
+                document.getElementById('reward-soul').textContent = '+' + rewardSoul;
+                document.getElementById('reward-rank').textContent = myRank === 1 ? '🥇 第1名' : myRank === 2 ? '🥈 第2名' : myRank === 3 ? '🥉 第3名' : `第${myRank}名`;
+                rewardModal.style.display = 'flex';
+                
             } catch (error) {
-                console.error('更新房间状态失败:', error);
+                console.error('结算失败:', error);
             }
         }
 
-        // ============ 房间列表监听 ============
+        // ============ 房间列表 ============
         function listenRooms() {
             const roomsRef = collection(db, "rooms");
             const q = query(roomsRef, orderBy('createdAt', 'desc'));
@@ -922,7 +1710,6 @@
                 for (const docSnap of snapshot.docs) {
                     const data = docSnap.data();
                     if (data.status !== 'ended') {
-                        // 获取玩家数量
                         const playersRef = collection(db, "rooms", docSnap.id, "players");
                         const playersSnapshot = await getDocs(playersRef);
                         
@@ -940,24 +1727,27 @@
 
         function renderRoomList(rooms) {
             if (rooms.length === 0) {
-                roomList.innerHTML = '<div class="empty-state">暂无房间，创建一个吧！</div>';
+                roomList.innerHTML = '<div class="empty-state">暂无队伍，创建一个吧！</div>';
                 return;
             }
 
             roomList.innerHTML = rooms.map(room => {
-                const statusClass = room.status === 'waiting' ? 'status-waiting' : 
-                                   room.status === 'fighting' ? 'status-fighting' : 'status-ended';
-                const statusText = room.status === 'waiting' ? '等待中' : 
-                                  room.status === 'fighting' ? '战斗中' : '已结束';
-                const hpPercent = ((room.bossHp || BOSS_MAX_HP) / BOSS_MAX_HP) * 100;
+                const statusClass = room.status === 'waiting' ? 'status-waiting' : 'status-fighting';
+                const statusText = room.status === 'waiting' ? '等待中' : '战斗中';
+                const hpPercent = ((room.bossHp || room.maxHp) / room.maxHp) * 100;
+                const diffName = difficultyNames[room.difficulty] || '普通';
+                const diffClass = `difficulty-${room.difficulty}`;
                 
                 return `
                     <div class="room-item">
                         <div class="room-info">
-                            <h4>${room.name || '未命名房间'}</h4>
-                            <p>👤 房主: ${room.hostEmail?.split('@')[0] || '未知'}</p>
-                            <p>👥 玩家: ${room.playerCount || 0} 人</p>
-                            <p>❤️ Boss HP: ${Math.round(hpPercent)}%</p>
+                            <h4>${room.name || '未命名队伍'}</h4>
+                            <p>
+                                <span>👤 ${room.hostEmail?.split('@')[0]}</span>
+                                <span>👥 ${room.playerCount || 0} 人</span>
+                                <span class="room-difficulty ${diffClass}">${diffName}</span>
+                            </p>
+                            <p>❤️ HP: ${Math.round(hpPercent)}% | ${room.bossHp || room.maxHp} / ${room.maxHp}</p>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
                             <span class="room-status ${statusClass}">${statusText}</span>
@@ -971,8 +1761,7 @@
 
             document.querySelectorAll('.join-room-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const roomId = e.target.dataset.roomId;
-                    joinRoomById(roomId);
+                    joinRoomById(e.target.dataset.roomId);
                 });
             });
         }
@@ -983,16 +1772,25 @@
             gameContainer.style.display = 'none';
         }
 
-        function showGameUI(user) {
+        async function showGameUI(user) {
             currentUser = user;
             userEmailSpan.textContent = user.email;
             authContainer.style.display = 'none';
             gameContainer.style.display = 'block';
-            roomListContainer.style.display = 'block';
-            battleContainer.style.display = 'none';
+            
+            await loadPlayerData();
             
             if (roomsUnsubscribe) roomsUnsubscribe();
             listenRooms();
+            
+            // 监听玩家数据变化
+            onSnapshot(doc(db, "players", user.uid), (snap) => {
+                if (snap.exists()) {
+                    playerData = snap.data();
+                    inventory = playerData.inventory || { potion: 0, scroll: 0 };
+                    updatePlayerUI();
+                }
+            });
         }
 
         // ============ 初始化 ============
@@ -1001,6 +1799,7 @@
                 showGameUI(user);
             } else {
                 currentUser = null;
+                playerData = null;
                 showAuthUI();
                 if (roomsUnsubscribe) {
                     roomsUnsubscribe();
@@ -1016,11 +1815,35 @@
         document.getElementById('create-room-btn').addEventListener('click', createRoom);
         document.getElementById('leave-battle-btn').addEventListener('click', backToRoomList);
         document.getElementById('attack-btn').addEventListener('click', handleAttack);
+        document.getElementById('skill1-btn').addEventListener('click', handleSkill1);
+        document.getElementById('skill2-btn').addEventListener('click', handleSkill2);
+        document.getElementById('claim-reward-btn').addEventListener('click', () => {
+            rewardModal.style.display = 'none';
+            backToRoomList();
+        });
         
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleLogin();
-            }
+        // 标签页切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.lobby-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
+            });
+        });
+        
+        // 升级按钮
+        document.querySelectorAll('.upgrade-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleUpgrade(btn.dataset.type));
+        });
+        
+        // 购买按钮
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleBuy(btn.dataset.item));
+        });
+        
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
         });
 
         window.addEventListener('beforeunload', async () => {
@@ -1029,6 +1852,15 @@
                 await remove(playerRef);
             }
         });
+
+        // 初始化技能冷却
+        setInterval(() => {
+            if (!skill1Ready && currentRoom) {
+                skill1Ready = true;
+                updateSkillButtons();
+            }
+        }, SKILL_COOLDOWN);
+        skill1Ready = true;
     </script>
 </body>
 </html>
