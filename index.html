@@ -2,698 +2,419 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>拾荒冒险 - 游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字MMO - 实时在线游戏</title>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "微软雅黑", sans-serif;
-            user-select: none;
+            font-family: "Microsoft YaHei", sans-serif;
         }
 
         body {
-            background: #12122d;
+            background: #1a1a2e;
             color: #fff;
-            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            overflow-x: hidden;
+            padding: 20px;
         }
 
-        /* 登录注册界面 */
-        .auth-container {
-            padding: 30px 20px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        /* 登录/注册面板 */
+        .auth-panel {
+            background: #16213e;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            margin: 100px auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
 
-        .auth-title {
+        .auth-panel h2 {
             text-align: center;
-            color: #00d4ff;
-            margin-bottom: 30px;
-            font-size: 26px;
-        }
-
-        .tab-bar {
-            display: flex;
-            gap: 10px;
             margin-bottom: 20px;
+            color: #00d4ff;
         }
 
-        .tab {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            background: #1e294b;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .tab.active {
-            background: #00d4ff;
-            color: #000;
-            font-weight: bold;
-        }
-
-        .input-box {
+        input, select, button {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             margin: 10px 0;
-            border-radius: 10px;
             border: none;
-            background: #1e294b;
+            border-radius: 5px;
+            background: #0f3460;
             color: #fff;
             font-size: 16px;
-            outline: none;
         }
 
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            border: none;
+        button {
             background: #00d4ff;
             color: #000;
             font-weight: bold;
-            font-size: 16px;
-            margin-top: 15px;
             cursor: pointer;
+            transition: 0.3s;
         }
 
-        .tip {
-            text-align: center;
-            margin-top: 15px;
-            color: #ff4466;
-            height: 20px;
+        button:hover {
+            background: #00a8cc;
         }
 
         /* 游戏主界面 */
-        .game-container {
+        .game-ui {
             display: none;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* 顶部信息栏 */
-        .top-info {
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #16213e;
             padding: 15px 20px;
-            background: #1e294b;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .player-info {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 20px;
         }
 
-        .role-info {
-            line-height: 1.4;
-        }
-
-        .stamina {
-            color: #4ade80;
-        }
-
-        .gold {
-            color: #facc15;
-        }
-
-        /* 内容操作区 */
-        .content {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* 创角界面 */
-        .create-role {
-            text-align: center;
-            padding-top: 60px;
-        }
-
-        /* 拾荒界面 */
-        .scavenge-btn {
-            width: 100%;
-            padding: 30px;
-            background: linear-gradient(90deg, #4ade80, #00d4ff);
-            color: #000;
-            font-size: 22px;
-            font-weight: bold;
-            border-radius: 20px;
-            border: none;
-            margin: 30px 0;
-            cursor: pointer;
-        }
-
-        .scavenge-btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-
-        /* 物品卡片 */
-        .item-grid {
+        .game-main {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .item-card {
-            background: #1e294b;
+        .panel {
+            background: #16213e;
+            padding: 20px;
             border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .item-name {
-            font-size: 12px;
-            margin: 5px 0;
-        }
-
-        .item-count {
-            color: #facc15;
-            font-size: 12px;
-        }
-
-        /* 稀有度颜色 */
-        .white { color: #fff; }
-        .green { color: #4ade80; }
-        .blue { color: #3b82f6; }
-        .purple { color: #a855f7; }
-        .orange { color: #f97316; }
-        .red { color: #ef4444; }
-
-        /* 制作、市场、图鉴列表 */
-        .list-item {
-            background: #1e294b;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .small-btn {
-            padding: 6px 10px;
-            background: #00d4ff;
-            color: #000;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        /* 聊天框 */
-        .chat-box {
-            background: #1e294b;
-            height: 120px;
-            border-radius: 10px;
-            padding: 10px;
+            height: 500px;
             overflow-y: auto;
-            margin-bottom: 10px;
-            font-size: 13px;
         }
 
-        .chat-input {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* 系统提示框 */
-        .system-msg {
-            background: #1e294b;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin: 10px 15px;
-            min-height: 40px;
-            font-size: 14px;
+        .panel h3 {
             color: #00d4ff;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 10px;
         }
 
-        /* 底部功能栏 */
-        .footer-menu {
-            display: flex;
-            background: #181830;
-            padding: 10px 0;
-            border-top: 1px solid #2d2d5f;
-        }
-
-        .menu-item {
-            flex: 1;
+        /* 战斗区域 */
+        .battle-area {
             text-align: center;
-            padding: 8px 0;
-            cursor: pointer;
-            font-size: 12px;
         }
 
-        .menu-item.active {
+        .enemy-info {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .battle-btn {
+            width: 48%;
+            margin: 5px 1%;
+        }
+
+        /* 聊天区域 */
+        .chat-messages {
+            height: 380px;
+            background: #0f3460;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .chat-name {
             color: #00d4ff;
+            font-weight: bold;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .game-main {
+                grid-template-columns: 1fr;
+            }
+            .auth-panel {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
-
-<!-- 登录注册界面 -->
-<div class="auth-container" id="authPage">
-    <h2 class="auth-title">拾荒冒险</h2>
-    <div class="tab-bar">
-        <div class="tab active" id="loginTab">登录</div>
-        <div class="tab" id="regTab">注册</div>
-    </div>
-
-    <!-- 登录 -->
-    <div id="loginForm">
-        <input class="input-box" id="loginEmail" placeholder="邮箱">
-        <input class="input-box" type="password" id="loginPwd" placeholder="密码">
-        <button class="btn" onclick="login()">登录</button>
-    </div>
-
-    <!-- 注册 -->
-    <div id="regForm" style="display:none">
-        <input class="input-box" id="regEmail" placeholder="邮箱">
-        <input class="input-box" type="password" id="regPwd" placeholder="密码(≥6位)">
-        <button class="btn" onclick="register()">注册</button>
-    </div>
-
-    <div class="tip" id="tip"></div>
-</div>
-
-<!-- 游戏主界面 -->
-<div class="game-container" id="gamePage" style="display:none">
-    <!-- 顶部信息 -->
-    <div class="top-info">
-        <div class="role-info">
-            <div>角色：<span id="roleName">未创建</span></div>
-            <div class="stamina">体力：<span id="stamina">0</span>/<span id="maxStamina">20</span></div>
-        </div>
-        <div class="gold">💰金币：<span id="gold">0</span></div>
-    </div>
-
-    <!-- 内容区 -->
-    <div class="content">
-        <!-- 创角 -->
-        <div class="page active" id="createPage">
-            <div class="create-role">
-                <input class="input-box" id="inputName" placeholder="输入角色名" maxlength="8">
-                <button class="btn" onclick="createRole()">创建角色</button>
+    <div class="container">
+        <!-- 登录注册界面 -->
+        <div class="auth-panel" id="authPanel">
+            <h2>文字MMO在线游戏</h2>
+            <input type="email" id="email" placeholder="邮箱">
+            <input type="password" id="password" placeholder="密码">
+            <button onclick="register()">注册账号</button>
+            <button onclick="login()">登录游戏</button>
+            <div style="text-align:center; margin-top:10px;">
+                <span id="authMsg" style="color:#ff4444;"></span>
             </div>
         </div>
 
-        <!-- 拾荒 -->
-        <div class="page" id="scavengePage">
-            <button class="scavenge-btn" id="scavengeBtn" onclick="doScavenge()">点击拾荒</button>
-            <div style="text-align:center;margin-top:-20px;margin-bottom:20px">每次消耗1点体力</div>
-            <h3>最近获得</h3>
-            <div class="item-grid" id="scavengeLog"></div>
-        </div>
+        <!-- 游戏主界面 -->
+        <div class="game-ui" id="gameUI">
+            <div class="game-header">
+                <div class="player-info">
+                    <div>玩家：<span id="playerName"></span></div>
+                    <div>职业：<span id="playerClass"></span></div>
+                    <div>等级：<span id="playerLevel"></span></div>
+                    <div>金币：<span id="playerGold"></span></div>
+                </div>
+                <button onclick="logout()" style="width:auto;">退出登录</button>
+            </div>
 
-        <!-- 背包 -->
-        <div class="page" id="bagPage">
-            <h3>材料背包</h3>
-            <div class="item-grid" id="materialBag"></div>
-            <h3 style="margin-top:20px">成品背包</h3>
-            <div class="item-grid" id="itemBag"></div>
-        </div>
+            <div class="game-main">
+                <!-- 战斗面板 -->
+                <div class="panel">
+                    <h3>冒险战斗</h3>
+                    <div class="battle-area">
+                        <div class="enemy-info">
+                            <h4>野怪：<span id="enemyName">史莱姆</span></h4>
+                            <p>血量：<span id="enemyHp">100</span>/100</p>
+                        </div>
+                        <button class="battle-btn" onclick="attackEnemy()">普通攻击</button>
+                        <button class="battle-btn" onclick="useSkill()">技能攻击</button>
+                        <p id="battleLog" style="margin-top:20px; color:#ffeb3b;"></p>
+                    </div>
+                </div>
 
-        <!-- 制作 -->
-        <div class="page" id="makePage">
-            <h3>制作系统</h3>
-            <div id="makeList"></div>
-        </div>
-
-        <!-- 市场 -->
-        <div class="page" id="marketPage">
-            <h3>玩家市场</h3>
-            <input class="input-box" placeholder="搜索物品" id="searchMarket" oninput="searchMarket()">
-            <div id="marketList"></div>
-        </div>
-
-        <!-- 图鉴 -->
-        <div class="page" id="bookPage">
-            <h3>成品图鉴</h3>
-            <div id="bookList"></div>
-        </div>
-
-        <!-- 技能 -->
-        <div class="page" id="skillPage">
-            <h3>技能系统</h3>
-            <div id="skillList"></div>
-        </div>
-
-        <!-- 排行榜 -->
-        <div class="page" id="rankPage">
-            <h3>金币排行榜</h3>
-            <div id="rankList"></div>
-        </div>
-
-        <!-- 聊天 -->
-        <div class="page" id="chatPage">
-            <h3>世界聊天</h3>
-            <div class="chat-box" id="chatBox"></div>
-            <div class="chat-input">
-                <input class="input-box" style="flex:1" id="chatMsg" placeholder="输入消息">
-                <button class="btn" style="width:80px" onclick="sendChat()">发送</button>
+                <!-- 聊天面板 -->
+                <div class="panel">
+                    <h3>世界聊天</h3>
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.keyCode==13) sendChat()">
+                    <button onclick="sendChat()">发送</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 系统提示 -->
-    <div class="system-msg" id="systemMsg">欢迎来到拾荒冒险</div>
+    <script>
+        // Firebase 配置（你的配置）
+        const firebaseConfig = {
+            apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
+            authDomain: "durango110.firebaseapp.com",
+            projectId: "durango110",
+            storageBucket: "durango110.firebasestorage.app",
+            messagingSenderId: "674394866246",
+            appId: "1:674394866246:web:72ecd92fed2e703f124047"
+        };
 
-    <!-- 底部菜单 -->
-    <div class="footer-menu">
-        <div class="menu-item" onclick="switchPage('scavengePage')">拾荒</div>
-        <div class="menu-item" onclick="switchPage('bagPage')">背包</div>
-        <div class="menu-item" onclick="switchPage('makePage')">制作</div>
-        <div class="menu-item" onclick="switchPage('marketPage')">市场</div>
-        <div class="menu-item" onclick="switchPage('skillPage')">技能</div>
-        <div class="menu-item" onclick="switchPage('chatPage')">聊天</div>
-    </div>
-</div>
+        // 初始化Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+        // 全局玩家数据
+        let currentUser = null;
+        let playerData = {};
+        let enemyData = { name: "史莱姆", hp: 100, maxHp: 100 };
 
-<script>
-    // Firebase配置
-    const firebaseConfig = {
-        apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
-        authDomain: "durango110.firebaseapp.com",
-        projectId: "durango110",
-        storageBucket: "durango110.firebasestorage.app",
-        messagingSenderId: "674394866246",
-        appId: "1:674394866246:web:72ecd92fed2e703f124047"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // 全局数据
-    let userData = null;
-    let uid = null;
-    let materials = [
-        {name:"破布",rare:"white"},{name:"木头",rare:"white"},{name:"铁片",rare:"green"},
-        {name:"铜线",rare:"blue"},{name:"芯片",rare:"purple"},{name:"能量核心",rare:"orange"},
-        {name:"神之碎片",rare:"red"}
-    ];
-    let makes = [
-        {name:"简易工具",need:{"破布":2,"木头":2},coin:5},
-        {name:"金属装备",need:{"铁片":3,"铜线":2},coin:20},
-        {name:"能源装置",need:{"芯片":2,"能量核心":1},coin:100},
-        {name:"神级道具",need:{"神之碎片":5},coin:1000}
-    ];
-    let skills = [
-        {name:"拾荒速度",lv:1,max:20,cost:10},
-        {name:"稀有概率",lv:1,max:20,cost:10},
-        {name:"制作速度",lv:1,max:20,cost:10},
-        {name:"数量翻倍",lv:1,max:20,cost:10},
-        {name:"体力上限",lv:1,max:20,cost:10},
-        {name:"体力恢复",lv:1,max:20,cost:10}
-    ];
-
-    // 登录注册切换
-    document.getElementById('loginTab').onclick = ()=>{
-        document.getElementById('loginForm').style.display='block';
-        document.getElementById('regForm').style.display='none';
-        document.getElementById('loginTab').classList.add('active');
-        document.getElementById('regTab').classList.remove('active');
-    }
-    document.getElementById('regTab').onclick = ()=>{
-        document.getElementById('loginForm').style.display='none';
-        document.getElementById('regForm').style.display='block';
-        document.getElementById('regTab').classList.add('active');
-        document.getElementById('loginTab').classList.remove('active');
-    }
-
-    // 提示
-    function showTip(text){document.getElementById('tip').innerText=text;}
-    function showSysMsg(text){document.getElementById('systemMsg').innerText=text;}
-
-    // 注册
-    function register(){
-        let email = document.getElementById('regEmail').value;
-        let pwd = document.getElementById('regPwd').value;
-        auth.createUserWithEmailAndPassword(email,pwd).then(()=>{
-            showTip('注册成功，请登录');
-        }).catch(e=>showTip(e.message));
-    }
-
-    // 登录
-    function login(){
-        let email = document.getElementById('loginEmail').value;
-        let pwd = document.getElementById('loginPwd').value;
-        auth.signInWithEmailAndPassword(email,pwd).catch(e=>showTip(e.message));
-    }
-
-    // 登录监听
-    auth.onAuthStateChanged(async user=>{
-        if(!user) return;
-        uid = user.uid;
-        document.getElementById('authPage').style.display='none';
-        document.getElementById('gamePage').style.display='flex';
-        await loadUserData();
-        startStaminaRecover();
-    });
-
-    // 加载用户数据
-    async function loadUserData(){
-        let doc = await db.collection('users').doc(uid).get();
-        if(!doc.exists()){
-            userData = {
-                name:"",stamina:20,maxStamina:20,gold:100,
-                bag:{},items:{},book:[],skills:[1,1,1,1,1,1],
-                coin:0,scavengeTime:0
-            };
-            await db.collection('users').doc(uid).set(userData);
-        }else{
-            userData = doc.data();
-        }
-        refreshUI();
-    }
-
-    // 保存数据
-    async function saveData(){
-        await db.collection('users').doc(uid).set(userData);
-        refreshUI();
-    }
-
-    // 刷新界面
-    function refreshUI(){
-        document.getElementById('roleName').innerText = userData.name || "未创建";
-        document.getElementById('stamina').innerText = userData.stamina;
-        document.getElementById('maxStamina').innerText = userData.maxStamina;
-        document.getElementById('gold').innerText = userData.gold;
-        renderBag();
-        renderMake();
-        renderSkill();
-        renderBook();
-        loadMarket();
-        loadRank();
-    }
-
-    // 创建角色
-    async function createRole(){
-        let name = document.getElementById('inputName').value.trim();
-        if(!name || name.length>8){showSysMsg('角色名1-8个字');return;}
-        userData.name = name;
-        await saveData();
-        switchPage('scavengePage');
-        showSysMsg('角色创建成功！');
-    }
-
-    // 页面切换
-    function switchPage(id){
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
-        let items = document.querySelectorAll('.menu-item');
-        if(id=='scavengePage')items[0].classList.add('active');
-        if(id=='bagPage')items[1].classList.add('active');
-        if(id=='makePage')items[2].classList.add('active');
-        if(id=='marketPage')items[3].classList.add('active');
-        if(id=='skillPage')items[4].classList.add('active');
-        if(id=='chatPage')items[5].classList.add('active');
-    }
-
-    // 拾荒
-    async function doScavenge(){
-        if(!userData.name){showSysMsg('请先创建角色');switchPage('createPage');return;}
-        if(userData.stamina<1){showSysMsg('体力不足');return;}
-        userData.stamina--;
-
-        // 稀有度概率
-        let rand = Math.random();
-        let rare = 'white';
-        let luck = userData.skills[1]*0.01;
-        if(rand<0.005+luck)rare='red';
-        else if(rand<0.02+luck)rare='orange';
-        else if(rand<0.05+luck)rare='purple';
-        else if(rand<0.12+luck)rare='blue';
-        else if(rand<0.3+luck)rare='green';
-
-        let list = materials.filter(m=>m.rare==rare);
-        let item = list[Math.floor(Math.random()*list.length)];
-        userData.bag[item.name] = (userData.bag[item.name]||0)+1;
-
-        // 数量翻倍
-        if(Math.random()<userData.skills[3]*0.005){
-            userData.bag[item.name]++;
-            showSysMsg(`拾荒成功！获得 ${item.name} x2！`);
-        }else{
-            showSysMsg(`拾荒成功！获得 ${item.name} x1`);
-        }
-        await saveData();
-    }
-
-    // 渲染背包
-    function renderBag(){
-        let matHtml = '',itemHtml='';
-        for(let name in userData.bag){
-            let rare = materials.find(m=>m.name==name)?.rare||'white';
-            matHtml+=`<div class="item-card"><div class="item-name ${rare}">${name}</div><div class="item-count">x${userData.bag[name]}</div></div>`;
-        }
-        for(let name in userData.items){
-            itemHtml+=`<div class="item-card"><div class="item-name">${name}</div><div class="item-count">x${userData.items[name]}</div></div>`;
-        }
-        document.getElementById('materialBag').innerHTML = matHtml;
-        document.getElementById('itemBag').innerHTML = itemHtml;
-    }
-
-    // 渲染制作
-    function renderMake(){
-        let html = '';
-        makes.forEach((m,i)=>{
-            html+=`<div class="list-item"><div>${m.name}</div><button class="small-btn" onclick="makeItem(${i})">制作</button></div>`;
-        });
-        document.getElementById('makeList').innerHTML = html;
-    }
-
-    // 制作
-    async function makeItem(index){
-        let m = makes[index];
-        for(let needName in m.need){
-            if((userData.bag[needName]||0)<m.need[needName]){
-                showSysMsg('材料不足');
+        // ==================== 登录注册功能 ====================
+        function register() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            if(!email || !password) {
+                showMsg("请输入邮箱和密码");
                 return;
             }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    currentUser = userCredential.user;
+                    createPlayer();
+                })
+                .catch((error) => {
+                    showMsg("注册失败：" + error.message);
+                });
         }
-        for(let needName in m.need) userData.bag[needName]-=m.need[needName];
-        userData.items[m.name] = (userData.items[m.name]||0)+1;
-        if(!userData.book.includes(m.name)) userData.book.push(m.name);
-        userData.gold += m.coin;
-        showSysMsg(`制作成功：${m.name}`);
-        await saveData();
-    }
 
-    // 渲染图鉴
-    function renderBook(){
-        let html='';
-        userData.book.forEach(name=>{
-            html+=`<div class="list-item">${name}</div>`;
+        function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            if(!email || !password) {
+                showMsg("请输入邮箱和密码");
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    currentUser = userCredential.user;
+                    loadPlayerData();
+                })
+                .catch((error) => {
+                    showMsg("登录失败：" + error.message);
+                });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                document.getElementById("authPanel").style.display = "block";
+                document.getElementById("gameUI").style.display = "none";
+            });
+        }
+
+        function showMsg(msg) {
+            document.getElementById("authMsg").textContent = msg;
+        }
+
+        // ==================== 玩家数据 ====================
+        function createPlayer() {
+            const playerId = currentUser.uid;
+            const defaultData = {
+                name: "玩家" + playerId.substring(0,4),
+                job: "战士",
+                level: 1,
+                hp: 100,
+                maxHp: 100,
+                attack: 20,
+                skillAttack: 35,
+                gold: 100,
+                exp: 0
+            };
+
+            db.ref("players/" + playerId).set(defaultData)
+                .then(() => {
+                    loadPlayerData();
+                });
+        }
+
+        function loadPlayerData() {
+            const playerId = currentUser.uid;
+            db.ref("players/" + playerId).on("value", (snapshot) => {
+                playerData = snapshot.val();
+                updatePlayerUI();
+                // 显示游戏界面
+                document.getElementById("authPanel").style.display = "none";
+                document.getElementById("gameUI").style.display = "block";
+            });
+        }
+
+        function updatePlayerUI() {
+            document.getElementById("playerName").textContent = playerData.name;
+            document.getElementById("playerClass").textContent = playerData.job;
+            document.getElementById("playerLevel").textContent = playerData.level;
+            document.getElementById("playerGold").textContent = playerData.gold;
+        }
+
+        // ==================== 战斗系统 ====================
+        function attackEnemy() {
+            // 玩家攻击
+            const damage = playerData.attack;
+            enemyData.hp -= damage;
+            if(enemyData.hp < 0) enemyData.hp = 0;
+            updateEnemyUI();
+            showBattleLog("你对史莱姆造成了" + damage + "点伤害！");
+
+            // 怪物死亡
+            if(enemyData.hp <= 0) {
+                const rewardGold = Math.floor(Math.random() * 50) + 10;
+                const rewardExp = Math.floor(Math.random() * 20) + 5;
+                
+                playerData.gold += rewardGold;
+                playerData.exp += rewardExp;
+                savePlayerData();
+                
+                showBattleLog("史莱姆被击败！获得" + rewardGold + "金币+" + rewardExp + "经验！");
+                // 重置怪物
+                setTimeout(() => {
+                    enemyData.hp = enemyData.maxHp;
+                    updateEnemyUI();
+                    showBattleLog("新的史莱姆出现了！");
+                }, 1500);
+                return;
+            }
+
+            // 怪物反击
+            setTimeout(() => {
+                const enemyDamage = Math.floor(Math.random() * 10) + 5;
+                showBattleLog("史莱姆对你造成了" + enemyDamage + "点伤害！");
+            }, 500);
+        }
+
+        function useSkill() {
+            const damage = playerData.skillAttack;
+            enemyData.hp -= damage;
+            if(enemyData.hp < 0) enemyData.hp = 0;
+            updateEnemyUI();
+            showBattleLog("你使用技能造成了" + damage + "点伤害！");
+
+            if(enemyData.hp <= 0) {
+                const rewardGold = Math.floor(Math.random() * 50) + 10;
+                const rewardExp = Math.floor(Math.random() * 20) + 5;
+                
+                playerData.gold += rewardGold;
+                playerData.exp += rewardExp;
+                savePlayerData();
+                
+                showBattleLog("史莱姆被秒杀！获得" + rewardGold + "金币+" + rewardExp + "经验！");
+                setTimeout(() => {
+                    enemyData.hp = enemyData.maxHp;
+                    updateEnemyUI();
+                    showBattleLog("新的史莱姆出现了！");
+                }, 1500);
+            }
+        }
+
+        function updateEnemyUI() {
+            document.getElementById("enemyHp").textContent = enemyData.hp;
+        }
+
+        function showBattleLog(text) {
+            document.getElementById("battleLog").textContent = text;
+        }
+
+        function savePlayerData() {
+            db.ref("players/" + currentUser.uid).update(playerData);
+        }
+
+        // ==================== 聊天系统 ====================
+        function sendChat() {
+            const input = document.getElementById("chatInput");
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            const chatData = {
+                name: playerData.name,
+                content: msg,
+                time: new Date().toLocaleTimeString()
+            };
+
+            db.ref("chat").push(chatData);
+            input.value = "";
+        }
+
+        // 监听聊天消息
+        db.ref("chat").limitToLast(50).on("child_added", (snapshot) => {
+            const chat = snapshot.val();
+            const chatBox = document.getElementById("chatMessages");
+            const div = document.createElement("div");
+            div.className = "chat-message";
+            div.innerHTML = `<span class="chat-name">${chat.name}</span> [${chat.time}]：${chat.content}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
         });
-        document.getElementById('bookList').innerHTML = html||'未制作任何物品';
-    }
-
-    // 渲染技能
-    function renderSkill(){
-        let html='';
-        skills.forEach((s,i)=>{
-            let lv = userData.skills[i]||1;
-            let cost = s.cost*lv;
-            html+=`<div class="list-item"><div>${s.name} Lv.${lv}</div><button class="small-btn" onclick="upSkill(${i},${cost})">升级(${cost}金币)</button></div>`;
-        });
-        document.getElementById('skillList').innerHTML = html;
-    }
-
-    // 升级技能
-    async function upSkill(index,cost){
-        if(userData.gold<cost){showSysMsg('金币不足');return;}
-        userData.skills[index]++;
-        userData.gold-=cost;
-        if(index==4) userData.maxStamina +=2;
-        showSysMsg('技能升级成功');
-        await saveData();
-    }
-
-    // 体力恢复
-    function startStaminaRecover(){
-        setInterval(()=>{
-            if(!userData || userData.stamina>=userData.maxStamina)return;
-            userData.stamina = Math.min(userData.maxStamina, userData.stamina+1);
-            saveData();
-        },5000 - (userData?.skills[5]||1)*200);
-    }
-
-    // 市场
-    async function sellItem(type,name,count,price){
-        await db.collection('market').add({
-            seller:uid,name,count,price,type,time:new Date()
-        });
-        if(type=='mat') userData.bag[name]-=count;
-        else userData.items[name]-=count;
-        await saveData();
-        showSysMsg('上架成功');
-    }
-
-    async function loadMarket(){
-        let snap = await db.collection('market').orderBy('time','desc').limit(30).get();
-        let html='';
-        snap.forEach(d=>{
-            let data = d.data();
-            html+=`<div class="list-item"><div>${data.name} x${data.count}</div><button class="small-btn" onclick="buyItem('${d.id}')">购买(${data.price}金币)</button></div>`;
-        });
-        document.getElementById('marketList').innerHTML = html||'暂无商品';
-    }
-
-    async function buyItem(id){
-        let doc = await db.collection('market').doc(id).get();
-        let data = doc.data();
-        if(userData.gold < data.price){showSysMsg('金币不足');return;}
-        userData.gold -= data.price;
-        if(data.type=='mat') userData.bag[data.name] = (userData.bag[data.name]||0)+data.count;
-        else userData.items[data.name] = (userData.items[data.name]||0)+data.count;
-        await db.collection('market').doc(id).delete();
-        await saveData();
-        showSysMsg('购买成功');
-    }
-
-    function searchMarket(){
-        // 已内置搜索逻辑
-    }
-
-    // 聊天
-    async function sendChat(){
-        let msg = document.getElementById('chatMsg').value.trim();
-        if(!msg)return;
-        await db.collection('chat').add({
-            name:userData.name,msg,time:new Date()
-        });
-        document.getElementById('chatMsg').value='';
-    }
-
-    // 排行榜
-    async function loadRank(){
-        let snap = await db.collection('users').orderBy('gold','desc').limit(20).get();
-        let html='';
-        snap.forEach((d,i)=>{
-            let u = d.data();
-            html+=`<div class="list-item"><div>${i+1}. ${u.name||'未命名'}</div><div>${u.gold}金币</div></div>`;
-        });
-        document.getElementById('rankList').innerHTML = html;
-    }
-</script>
+    </script>
 </body>
 </html>
