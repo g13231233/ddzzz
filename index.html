@@ -1,936 +1,276 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🐾 云养宠 · 毛球小窝</title>
-    
-    <!-- PWA 配置 -->
-    <link rel="manifest" href="data:application/manifest+json,{
-        %22name%22: %22毛球小窝%22,
-        %22short_name%22: %22毛球%22,
-        %22description%22: %22在线养宠物，和好友一起成长%22,
-        %22start_url%22: %22.%22,
-        %22display%22: %22standalone%22,
-        %22theme_color%22: %22#ffaa7a%22,
-        %22background_color%22: %22#ffe6d5%22,
-        %22icons%22: [
-            {
-                %22src%22: %22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='10' y='70' font-size='70'%3E🐶%3C/text%3E%3C/svg%3E%22,
-                %22sizes%22: %22100x100%22,
-                %22type%22: %22image/svg+xml%22
-            }
-        ]
-    }">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    <title>NetplayJS 多人游戏 - 好友对战</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'PingFang SC', 'Helvetica Neue', sans-serif;
-        }
-
         body {
-            min-height: 100vh;
-            background: linear-gradient(145deg, #f9e7e7 0%, #ffe6d5 50%, #fef9e0 100%);
-            background-attachment: fixed;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #1a1a2e;
+            color: white;
+            margin: 0;
             padding: 20px;
         }
-
-        #app {
-            width: 100%;
-            max-width: 1000px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 48px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        #auth-container {
-            text-align: center;
-            max-width: 440px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            font-size: 64px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.05));
-        }
-
-        h2 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #5e3c23;
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            color: #9b6b43;
-            margin-bottom: 28px;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #6b4a2c;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 16px 20px;
-            font-size: 16px;
-            border: 2px solid #fadbc8;
-            border-radius: 40px;
-            background: rgba(255, 255, 255, 0.8);
-            color: #3e2c1b;
-            outline: none;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .input-group input:focus {
-            border-color: #ffaa7a;
-            background: white;
-            box-shadow: 0 0 0 5px rgba(255, 170, 122, 0.15);
-        }
-
-        .input-group input::placeholder {
-            color: #b2977e;
-            font-weight: 400;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 28px;
-        }
-
-        .btn {
-            padding: 14px 30px;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-            color: #5e3c23;
-            border: 2px solid #fadbc8;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-            letter-spacing: 0.3px;
-        }
-
-        .btn-primary {
-            background: #ffaa7a;
-            color: white;
-            border: none;
-            box-shadow: 0 10px 20px rgba(255, 170, 122, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: #ff8f5a;
-            transform: translateY(-3px);
-            box-shadow: 0 16px 24px rgba(255, 143, 90, 0.35);
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,240,0.7);
-            border: 2px solid #ffe0c0;
-        }
-
-        .btn-secondary:hover {
-            background: white;
-            border-color: #ffaa7a;
-        }
-
-        .btn-small {
-            padding: 8px 18px;
-            font-size: 14px;
-        }
-
-        .error-message {
-            color: #d14545;
-            font-size: 14px;
-            margin-top: 12px;
-            min-height: 20px;
-            font-weight: 500;
-        }
-
-        #app-container {
-            display: none;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .header-left h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #5e3c23;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-area {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background: rgba(255,255,240,0.5);
-            padding: 8px 16px 8px 22px;
-            border-radius: 60px;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-
-        .user-email {
-            font-weight: 600;
-            color: #5e3c23;
-        }
-
-        .pet-panel {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 30px;
-        }
-
-        .pet-card {
-            background: rgba(255, 248, 235, 0.5);
-            backdrop-filter: blur(10px);
-            border-radius: 48px;
-            padding: 30px 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 220, 180, 0.6);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
-        }
-
-        .pet-avatar {
-            font-size: 120px;
-            line-height: 1;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 8px 16px rgba(210, 120, 40, 0.2));
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-
-        .pet-avatar:active {
-            transform: scale(0.95);
-        }
-
-        .pet-name {
-            font-size: 28px;
-            font-weight: 800;
-            color: #5e3c23;
-            margin-bottom: 8px;
-        }
-
-        .pet-level {
-            display: inline-block;
-            background: #ffd8b0;
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-weight: 700;
-            color: #5e3c23;
-            margin-bottom: 20px;
-            border: 2px solid white;
-        }
-
-        .pet-stats {
-            background: rgba(255,255,255,0.4);
-            border-radius: 30px;
-            padding: 16px 20px;
-            text-align: left;
-            margin-top: 10px;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #dbb48b;
-        }
-
-        .stat-row:last-child {
-            border-bottom: none;
-        }
-
-        .stat-label {
-            font-weight: 600;
-            color: #6b4a2c;
-        }
-
-        .stat-value {
-            font-weight: 700;
-            color: #3e2c1b;
-        }
-
-        .exp-bar-container {
-            margin: 15px 0 5px;
-            height: 12px;
-            background: rgba(0,0,0,0.05);
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .exp-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ffb37b, #ff8a5c);
-            border-radius: 20px;
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        .action-panel {
-            background: rgba(255, 245, 230, 0.5);
-            backdrop-filter: blur(10px);
-            border-radius: 48px;
-            padding: 28px 24px;
-            border: 1px solid rgba(255, 220, 180, 0.6);
-        }
-
-        .action-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #5e3c23;
-            margin-bottom: 24px;
-        }
-
-        .action-buttons {
+        #gameContainer {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-        }
-
-        .action-btn {
-            background: white;
-            border: none;
-            border-radius: 60px;
-            padding: 18px 20px;
-            font-size: 18px;
-            font-weight: 700;
-            color: #5e3c23;
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid #ffe0c0;
-            box-shadow: 0 4px 0 #eecbad;
+            justify-content: center;
         }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0 #eecbad;
-            background: #fff8ef;
+        canvas {
+            border: 3px solid #00d9ff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,217,255,0.3);
         }
-
-        .action-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #eecbad;
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #16213e;
+            border-radius: 8px;
+            font-family: monospace;
         }
-
-        .action-cost {
-            font-size: 15px;
-            background: #ffdbb5;
-            padding: 6px 16px;
-            border-radius: 40px;
-            color: #5e3c23;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin: 20px 0 16px;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 12px 24px;
-            font-size: 18px;
-            font-weight: 700;
-            color: #9b7b5e;
-            cursor: pointer;
-            border-radius: 40px;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: #5e3c23;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
-        }
-
-        .ranking-list {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 30px;
-            padding: 16px 8px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .rank-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 18px;
-            background: rgba(255,255,255,0.5);
-            margin-bottom: 8px;
-            border-radius: 50px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-
-        .rank-number {
-            font-weight: 800;
-            color: #b06e3e;
-            width: 30px;
-            text-align: center;
-        }
-
-        .rank-avatar {
-            font-size: 30px;
-        }
-
-        .rank-info {
-            flex: 1;
-        }
-
-        .rank-name {
-            font-weight: 700;
-            color: #3e2c1b;
-        }
-
-        .rank-value {
-            font-weight: 800;
-            color: #ff8a5c;
-        }
-
-        .empty-feed {
-            text-align: center;
-            padding: 30px;
-            color: #9b7b5e;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255,170,122,0.2);
-            border-top-color: #ffaa7a;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .footer-note {
-            margin-top: 24px;
-            text-align: center;
-            color: #b2977e;
+        .instruction {
+            margin-top: 15px;
+            color: #aaa;
             font-size: 14px;
         }
-
-        .gold-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #ffd966;
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-weight: 700;
-            color: #5e3c23;
+        button {
+            background: #00d9ff;
+            border: none;
+            padding: 8px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
         }
-
-        @media (max-width: 700px) {
-            .pet-panel { grid-template-columns: 1fr; }
+        button:hover {
+            background: #00a8cc;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <!-- 登录注册界面 -->
-        <div id="auth-container" class="card">
-            <div class="logo">🐣</div>
-            <h2>毛球小窝</h2>
-            <p class="subtitle">领养一只可爱宠物，陪伴成长</p>
-            
-            <div class="input-group">
-                <label>📧 邮箱</label>
-                <input type="email" id="email" placeholder="your@email.com" autocomplete="email" />
-            </div>
-            <div class="input-group">
-                <label>🔐 密码</label>
-                <input type="password" id="password" placeholder="至少6位" autocomplete="current-password" />
-            </div>
-            <div id="auth-error" class="error-message"></div>
-            
-            <div class="btn-group">
-                <button class="btn btn-primary" id="login-btn">登录</button>
-                <button class="btn btn-secondary" id="register-btn">注册领养</button>
-            </div>
-            <p style="margin-top: 24px; color: #9b7b5e; font-size: 14px;">
-                首次使用自动注册，开启养宠之旅 🐾
-            </p>
+    <h1>🎮 NetplayJS 多人竞技场</h1>
+    <p>红色方块是你，蓝色方块是对手 | 使用 WASD 或 方向键 移动</p>
+    
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div id="status">
+            🔄 正在连接...
         </div>
-
-        <!-- 主界面 -->
-        <div id="app-container">
-            <div class="header">
-                <div class="header-left">
-                    <h1>🐾 毛球小窝</h1>
-                </div>
-                <div class="user-area">
-                    <span class="user-email" id="display-email"></span>
-                    <span class="gold-badge" id="gold-header">💰 0</span>
-                    <button class="btn btn-secondary btn-small" id="logout-btn">登出</button>
-                </div>
-            </div>
-
-            <!-- 宠物信息 & 互动 -->
-            <div class="pet-panel">
-                <div class="pet-card">
-                    <div class="pet-avatar" id="pet-avatar">🐶</div>
-                    <div class="pet-name" id="pet-name">小毛球</div>
-                    <div class="pet-level" id="pet-level">Lv.1</div>
-                    <div class="exp-bar-container">
-                        <div class="exp-bar" id="exp-bar" style="width:0%"></div>
-                    </div>
-                    <div class="pet-stats">
-                        <div class="stat-row"><span class="stat-label">❤️ 心情</span><span class="stat-value" id="stat-mood">开心</span></div>
-                        <div class="stat-row"><span class="stat-label">⚡ 经验</span><span class="stat-value" id="stat-exp">0/100</span></div>
-                        <div class="stat-row"><span class="stat-label">🪙 金币</span><span class="stat-value" id="stat-gold">0</span></div>
-                    </div>
-                </div>
-
-                <div class="action-panel">
-                    <div class="action-title">✨ 互动一下</div>
-                    <div class="action-buttons">
-                        <button class="action-btn" id="feed-btn">
-                            <span>🍖 喂食</span>
-                            <span class="action-cost">+15 EXP / -5💰</span>
-                        </button>
-                        <button class="action-btn" id="play-btn">
-                            <span>🎾 玩耍</span>
-                            <span class="action-cost">+30 EXP / -8💰</span>
-                        </button>
-                        <button class="action-btn" id="clean-btn">
-                            <span>🛁 清洁</span>
-                            <span class="action-cost">+10 EXP / 心情↑</span>
-                        </button>
-                        <button class="action-btn" id="work-btn">
-                            <span>💼 打工</span>
-                            <span class="action-cost">+20💰 / 心情↓</span>
-                        </button>
-                    </div>
-                    <p style="margin-top: 20px; color:#8b6f50; font-size:14px; text-align:center;">
-                        💡 等级越高，打工金币越多！
-                    </p>
-                </div>
-            </div>
-
-            <!-- 排行榜区域 -->
-            <div class="tabs">
-                <button class="tab-btn active" data-rank="level">🏆 等级排行</button>
-                <button class="tab-btn" data-rank="gold">💰 富豪排行</button>
-            </div>
-            <div id="ranking-container" class="ranking-list">
-                <div class="empty-feed"><span class="loading-spinner"></span> 加载中...</div>
-            </div>
-            <div class="footer-note">
-                🌱 每天互动，你的毛球会越来越强~
-            </div>
+        <div class="instruction">
+            💡 提示：第一个打开页面的人是主机，把链接分享给朋友即可加入<br>
+            🎯 目标：触碰对手即可得分！谁先拿到5分获胜
         </div>
     </div>
 
-    <!-- PWA Service Worker 注册 -->
+    <!-- 引入 NetplayJS -->
+    <script src="https://unpkg.com/[email protected]/dist/netplay.js"></script>
+    
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register(
-                    "data:application/javascript," + encodeURIComponent(`
-                        const CACHE_NAME = 'pet-app-v1';
-                        self.addEventListener('install', (event) => {
-                            event.waitUntil(caches.open(CACHE_NAME));
-                        });
-                        self.addEventListener('fetch', (event) => {
-                            const url = event.request.url;
-                            if (url.includes('firebase') || url.includes('googleapis')) {
-                                event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
-                            } else {
-                                event.respondWith(
-                                    caches.match(event.request).then((response) => response || fetch(event.request))
-                                );
-                            }
-                        });
-                    `)
-                ).catch(err => console.log('SW注册失败: ', err));
-            });
-        }
-    </script>
-
-    <!-- 使用国内 CDN 加速的 Firebase SDK -->
-    <script type="module">
-        // 从 npmmirror 国内镜像加载 Firebase，速度更快
-        import { initializeApp } from "https://registry.npmmirror.com/@firebase/app/10.12.0/files/dist/index.esm.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged
-        } from "https://registry.npmmirror.com/@firebase/auth/10.12.0/files/dist/index.esm.js";
-        import { 
-            getFirestore,
-            doc,
-            setDoc,
-            getDoc,
-            updateDoc,
-            collection,
-            query,
-            orderBy,
-            limit,
-            onSnapshot,
-            serverTimestamp,
-            increment
-        } from "https://registry.npmmirror.com/@firebase/firestore/10.12.0/files/dist/index.esm.js";
-
-        // 你的 Firebase 配置（保持不变）
-        const firebaseConfig = {
-            apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
-            authDomain: "durango110.firebaseapp.com",
-            projectId: "durango110",
-            storageBucket: "durango110.firebasestorage.app",
-            messagingSenderId: "674394866246",
-            appId: "1:674394866246:web:72ecd92fed2e703f124047"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // ========== 游戏配置 ==========
-        const EXP_TABLE = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000];
-        const PET_AVATARS = ['🐶', '🐱', '🐼', '🦊', '🐸', '🐨', '🦝', '🐮'];
-        
-        let currentUser = null;
-        let petData = null;
-        let petUnsubscribe = null;
-        let rankUnsubscribe = null;
-        let currentRankType = 'level';
-
-        // DOM 元素
-        const authContainer = document.getElementById('auth-container');
-        const appContainer = document.getElementById('app-container');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const authError = document.getElementById('auth-error');
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const displayEmail = document.getElementById('display-email');
-        const goldHeader = document.getElementById('gold-header');
-        const petAvatar = document.getElementById('pet-avatar');
-        const petName = document.getElementById('pet-name');
-        const petLevelSpan = document.getElementById('pet-level');
-        const expBar = document.getElementById('exp-bar');
-        const statMood = document.getElementById('stat-mood');
-        const statExp = document.getElementById('stat-exp');
-        const statGold = document.getElementById('stat-gold');
-        const feedBtn = document.getElementById('feed-btn');
-        const playBtn = document.getElementById('play-btn');
-        const cleanBtn = document.getElementById('clean-btn');
-        const workBtn = document.getElementById('work-btn');
-        const rankingContainer = document.getElementById('ranking-container');
-
-        // ========== 工具函数 ==========
-        function getAvatarFromId(uid) {
-            let hash = 0;
-            for (let i = 0; i < uid.length; i++) {
-                hash = ((hash << 5) - hash) + uid.charCodeAt(i);
-                hash |= 0;
-            }
-            return PET_AVATARS[Math.abs(hash) % PET_AVATARS.length];
-        }
-
-        function getMoodText(mood) {
-            if (mood >= 80) return '😊 超开心';
-            if (mood >= 60) return '🙂 愉快';
-            if (mood >= 40) return '😐 一般';
-            if (mood >= 20) return '😕 低落';
-            return '😢 难过';
-        }
-
-        function getLevelFromExp(exp) {
-            for (let i = EXP_TABLE.length - 1; i >= 0; i--) {
-                if (exp >= EXP_TABLE[i]) return i + 1;
-            }
-            return 1;
-        }
-
-        function getExpForNextLevel(level) {
-            return EXP_TABLE[level] || EXP_TABLE[EXP_TABLE.length-1];
-        }
-
-        function getAuthErrorMessage(code) {
-            const messages = {
-                'auth/invalid-email': '邮箱格式不正确',
-                'auth/user-not-found': '账号不存在',
-                'auth/wrong-password': '密码错误',
-                'auth/email-already-in-use': '该邮箱已注册',
-                'auth/weak-password': '密码至少6位',
-            };
-            return messages[code] || '操作失败';
-        }
-
-        // ========== 宠物数据初始化 ==========
-        async function createPetForUser(user) {
-            const avatar = getAvatarFromId(user.uid);
-            const petRef = doc(db, "pets", user.uid);
-            await setDoc(petRef, {
-                email: user.email,
-                name: user.email.split('@')[0] + '的毛球',
-                avatar: avatar,
-                exp: 0,
-                gold: 100,
-                mood: 80,
-                totalEarned: 0,
-                updatedAt: serverTimestamp()
-            });
-        }
-
-        function listenToPet(uid) {
-            if (petUnsubscribe) petUnsubscribe();
-            const petRef = doc(db, "pets", uid);
-            petUnsubscribe = onSnapshot(petRef, async (snap) => {
-                if (!snap.exists()) {
-                    await createPetForUser(currentUser);
-                    return;
-                }
-                petData = snap.data();
-                updatePetUI();
-            });
-        }
-
-        function updatePetUI() {
-            if (!petData) return;
-            
-            const level = getLevelFromExp(petData.exp);
-            const currentExp = petData.exp;
-            const nextExp = getExpForNextLevel(level);
-            const prevExp = level > 1 ? getExpForNextLevel(level-1) : 0;
-            const expPercent = ((currentExp - prevExp) / (nextExp - prevExp)) * 100;
-            
-            petAvatar.textContent = petData.avatar || '🐶';
-            petName.textContent = petData.name || '小毛球';
-            petLevelSpan.textContent = `Lv.${level}`;
-            expBar.style.width = Math.min(100, Math.max(0, expPercent)) + '%';
-            statMood.textContent = getMoodText(petData.mood || 50);
-            statExp.textContent = `${currentExp} / ${nextExp}`;
-            statGold.textContent = petData.gold || 0;
-            goldHeader.textContent = `💰 ${petData.gold || 0}`;
-            displayEmail.textContent = petData.email || currentUser.email;
-        }
-
-        // ========== 互动操作 ==========
-        async function doAction(type) {
-            if (!currentUser || !petData) return;
-            const petRef = doc(db, "pets", currentUser.uid);
-            
-            try {
-                let updateData = {};
-                const level = getLevelFromExp(petData.exp);
-                const workGold = 20 + (level * 2);
+        // 定义我们的游戏类
+        class CatchGame extends netplayjs.Game {
+            constructor(canvas, players) {
+                super();
+                this.canvas = canvas;
                 
-                switch(type) {
-                    case 'feed':
-                        if (petData.gold < 5) { alert('💰 金币不够啦'); return; }
-                        updateData = { exp: increment(15), gold: increment(-5), mood: increment(3) };
-                        break;
-                    case 'play':
-                        if (petData.gold < 8) { alert('💰 金币不够啦'); return; }
-                        updateData = { exp: increment(30), gold: increment(-8), mood: increment(10) };
-                        break;
-                    case 'clean':
-                        updateData = { exp: increment(10), mood: increment(20) };
-                        break;
-                    case 'work':
-                        if (petData.mood < 20) { alert('😢 心情太差，不想打工'); return; }
-                        updateData = { gold: increment(workGold), mood: increment(-15), totalEarned: increment(workGold) };
-                        break;
-                }
+                // 初始化玩家位置
+                this.playerPositions = new Map();
+                // 分数
+                this.scores = new Map();
+                // 游戏是否结束
+                this.gameOver = false;
+                this.winner = null;
                 
-                await updateDoc(petRef, updateData);
-                petAvatar.style.transform = 'scale(1.1)';
-                setTimeout(() => petAvatar.style.transform = 'scale(1)', 100);
-            } catch(err) {
-                console.error(err);
-                alert('操作失败');
-            }
-        }
-
-        // ========== 排行榜 ==========
-        function listenToRanking(type) {
-            if (rankUnsubscribe) rankUnsubscribe();
-            
-            let q;
-            if (type === 'level') {
-                q = query(collection(db, "pets"), orderBy("exp", "desc"), limit(20));
-            } else {
-                q = query(collection(db, "pets"), orderBy("gold", "desc"), limit(20));
-            }
-            
-            rankUnsubscribe = onSnapshot(q, (snap) => {
-                const items = [];
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const level = getLevelFromExp(data.exp || 0);
-                    items.push({
-                        id: doc.id,
-                        name: data.name || '匿名',
-                        avatar: data.avatar || '🐾',
-                        level: level,
-                        exp: data.exp || 0,
-                        gold: data.gold || 0,
-                        value: type === 'level' ? level : data.gold
-                    });
+                // 为每个玩家设置初始位置和分数
+                players.forEach((player, index) => {
+                    const id = player.getID();
+                    if (index === 0) {
+                        this.playerPositions.set(id, { x: 100, y: 250 });
+                    } else {
+                        this.playerPositions.set(id, { x: 700, y: 250 });
+                    }
+                    this.scores.set(id, 0);
                 });
                 
-                if (type === 'level') {
-                    items.sort((a,b) => b.level - a.level || b.exp - a.exp);
-                } else {
-                    items.sort((a,b) => b.gold - a.gold);
-                }
-                
-                renderRanking(items.slice(0, 15), type);
-            });
-        }
-
-        function renderRanking(items, type) {
-            if (items.length === 0) {
-                rankingContainer.innerHTML = '<div class="empty-feed">✨ 暂无数据，快来成为第一吧</div>';
-                return;
+                // 记录自己的玩家ID
+                this.myId = players.find(p => p.isLocal())?.getID();
             }
             
-            let html = '';
-            items.forEach((item, idx) => {
-                const isMe = currentUser && item.id === currentUser.uid;
-                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx+1}.`;
-                const displayValue = type === 'level' ? `Lv.${item.level}` : `${item.gold}💰`;
+            // tick 函数：每帧执行，处理所有玩家的输入
+            tick(playerInputs) {
+                if (this.gameOver) return;
                 
-                html += `
-                    <div class="rank-item" style="${isMe ? 'background: #fff3e0; border:2px solid #ffb37b;' : ''}">
-                        <div class="rank-number">${medal}</div>
-                        <div class="rank-avatar">${item.avatar}</div>
-                        <div class="rank-info">
-                            <div class="rank-name">${item.name} ${isMe ? '(你)' : ''}</div>
-                        </div>
-                        <div class="rank-value">${displayValue}</div>
-                    </div>
-                `;
-            });
-            rankingContainer.innerHTML = html;
-        }
-
-        // ========== 认证 ==========
-        async function handleRegister() {
-            const email = emailInput.value.trim();
-            const pwd = passwordInput.value;
-            if (!email || !pwd) { authError.textContent = '请输入邮箱密码'; return; }
-            if (pwd.length < 6) { authError.textContent = '密码至少6位'; return; }
-            try {
-                authError.textContent = '';
-                await createUserWithEmailAndPassword(auth, email, pwd);
-            } catch(e) { authError.textContent = getAuthErrorMessage(e.code); }
-        }
-
-        async function handleLogin() {
-            const email = emailInput.value.trim();
-            const pwd = passwordInput.value;
-            if (!email || !pwd) { authError.textContent = '请输入邮箱密码'; return; }
-            try {
-                authError.textContent = '';
-                await signInWithEmailAndPassword(auth, email, pwd);
-            } catch(e) { authError.textContent = getAuthErrorMessage(e.code); }
-        }
-
-        async function handleLogout() {
-            await signOut(auth);
-        }
-
-        // ========== 认证状态监听 ==========
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                authContainer.style.display = 'none';
-                appContainer.style.display = 'block';
-                listenToPet(user.uid);
-                listenToRanking(currentRankType);
-            } else {
-                currentUser = null;
-                if (petUnsubscribe) petUnsubscribe();
-                if (rankUnsubscribe) rankUnsubscribe();
-                authContainer.style.display = 'block';
-                appContainer.style.display = 'none';
+                // 获取所有玩家的位置副本，用于碰撞检测
+                const positions = new Map(this.playerPositions);
+                
+                for (const [player, input] of playerInputs.entries()) {
+                    const id = player.getID();
+                    let pos = this.playerPositions.get(id);
+                    if (!pos) continue;
+                    
+                    // 从输入中获取方向键状态
+                    const vel = input.arrowKeys();
+                    const speed = 6;
+                    
+                    // 更新位置
+                    let newX = pos.x + vel.x * speed;
+                    let newY = pos.y + vel.y * speed;
+                    
+                    // 边界限制
+                    newX = Math.max(30, Math.min(770, newX));
+                    newY = Math.max(30, Math.min(470, newY));
+                    
+                    this.playerPositions.set(id, { x: newX, y: newY });
+                }
+                
+                // 碰撞检测：红方(第一个玩家)触碰蓝方(第二个玩家)
+                const playersList = Array.from(playerInputs.keys());
+                if (playersList.length >= 2) {
+                    const p1Id = playersList[0].getID();
+                    const p2Id = playersList[1].getID();
+                    const p1Pos = this.playerPositions.get(p1Id);
+                    const p2Pos = this.playerPositions.get(p2Id);
+                    
+                    if (p1Pos && p2Pos) {
+                        const distance = Math.hypot(p1Pos.x - p2Pos.x, p1Pos.y - p2Pos.y);
+                        if (distance < 40) {
+                            // 触碰得分，被触碰者重置位置
+                            const toucher = this.isPlayer1 ? p1Id : p2Id;
+                            const victim = toucher === p1Id ? p2Id : p1Id;
+                            
+                            this.scores.set(toucher, this.scores.get(toucher) + 1);
+                            
+                            // 重置位置
+                            this.playerPositions.set(p1Id, { x: 100, y: 250 });
+                            this.playerPositions.set(p2Id, { x: 700, y: 250 });
+                            
+                            // 检查胜利
+                            if (this.scores.get(toucher) >= 5) {
+                                this.gameOver = true;
+                                this.winner = toucher;
+                            }
+                        }
+                    }
+                }
             }
-        });
-
-        // ========== 事件绑定 ==========
-        loginBtn.addEventListener('click', handleLogin);
-        registerBtn.addEventListener('click', handleRegister);
-        logoutBtn.addEventListener('click', handleLogout);
+            
+            // 绘制游戏画面
+            draw(canvas) {
+                const ctx = canvas.getContext("2d");
+                
+                // 背景
+                ctx.fillStyle = "#0f0f23";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制网格
+                ctx.strokeStyle = "#2a2a4a";
+                ctx.lineWidth = 1;
+                for (let i = 0; i < canvas.width; i += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, canvas.height);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(canvas.width, i);
+                    ctx.stroke();
+                }
+                
+                // 绘制所有玩家
+                for (const [id, pos] of this.playerPositions.entries()) {
+                    // 区分颜色：自己是红色？需要判断一下
+                    // 简单起见：ID最小的红色，另一个蓝色
+                    const isRed = id === Math.min(...this.playerPositions.keys());
+                    ctx.fillStyle = isRed ? "#ff4444" : "#4488ff";
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = isRed ? "#ff0000" : "#0088ff";
+                    ctx.fillRect(pos.x - 20, pos.y - 20, 40, 40);
+                    ctx.fillStyle = "white";
+                    ctx.font = "bold 16px Arial";
+                    ctx.fillText(isRed ? "P1" : "P2", pos.x - 8, pos.y + 6);
+                }
+                ctx.shadowBlur = 0;
+                
+                // 显示分数
+                ctx.font = "bold 28px Arial";
+                ctx.fillStyle = "#ff8888";
+                const scoresList = Array.from(this.scores.entries());
+                if (scoresList[0]) ctx.fillText(`${scoresList[0][1]}`, 60, 60);
+                if (scoresList[1]) ctx.fillText(`${scoresList[1][1]}`, canvas.width - 100, 60);
+                
+                // 显示胜利信息
+                if (this.gameOver && this.winner !== undefined) {
+                    ctx.font = "bold 36px Arial";
+                    ctx.fillStyle = "#ffcc00";
+                    ctx.shadowBlur = 0;
+                    const winnerText = this.winner === this.myId ? "🎉 你赢了！ 🎉" : "😢 对手赢了... 😢";
+                    ctx.fillText(winnerText, canvas.width/2 - 120, canvas.height/2);
+                }
+            }
+            
+            // 序列化游戏状态（NetplayJS 需要）
+            serialize() {
+                const positionsObj = {};
+                for (const [id, pos] of this.playerPositions.entries()) {
+                    positionsObj[id] = pos;
+                }
+                const scoresObj = {};
+                for (const [id, score] of this.scores.entries()) {
+                    scoresObj[id] = score;
+                }
+                return {
+                    playerPositions: positionsObj,
+                    scores: scoresObj,
+                    gameOver: this.gameOver,
+                    winner: this.winner
+                };
+            }
+            
+            // 反序列化
+            deserialize(value) {
+                this.playerPositions.clear();
+                for (const [id, pos] of Object.entries(value.playerPositions)) {
+                    this.playerPositions.set(parseInt(id), pos);
+                }
+                this.scores.clear();
+                for (const [id, score] of Object.entries(value.scores)) {
+                    this.scores.set(parseInt(id), score);
+                }
+                this.gameOver = value.gameOver;
+                this.winner = value.winner;
+            }
+        }
         
-        feedBtn.addEventListener('click', () => doAction('feed'));
-        playBtn.addEventListener('click', () => doAction('play'));
-        cleanBtn.addEventListener('click', () => doAction('clean'));
-        workBtn.addEventListener('click', () => doAction('work'));
+        // 配置游戏参数
+        CatchGame.timestep = 1000 / 60;  // 60 FPS
+        CatchGame.canvasSize = { width: 800, height: 500 };
         
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentRankType = btn.dataset.rank;
-                listenToRanking(currentRankType);
-            });
-        });
+        // 启动游戏（使用 Rollback 回滚网络代码）
+        const canvas = document.getElementById("gameCanvas");
+        const statusDiv = document.getElementById("status");
         
-        passwordInput.addEventListener('keypress', (e) => { if(e.key==='Enter') handleLogin(); });
-        emailInput.addEventListener('keypress', (e) => { if(e.key==='Enter') handleLogin(); });
-
-        console.log('🐾 云养宠已启动 (CDN加速+PWA优化版)');
+        // 监听连接状态
+        const game = new netplayjs.RollbackWrapper(CatchGame);
+        
+        // 显示状态更新（可选，通过轮询）
+        setInterval(() => {
+            if (game.room) {
+                const playerCount = game.room.getPlayers().length;
+                statusDiv.innerHTML = `✅ 已连接 | 房间人数: ${playerCount}/2<br>🏆 先触碰对手5次获胜！`;
+            }
+        }, 1000);
+        
+        // 启动！
+        game.start();
+        
+        statusDiv.innerHTML = "🎮 游戏已启动！<br>📤 分享这个页面链接给朋友，他们打开后会自动加入";
     </script>
 </body>
 </html>
