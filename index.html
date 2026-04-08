@@ -3,1034 +3,446 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 炎魔领主 · 多人讨伐战</title>
+    <title>简帖 · 轻留言板</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, system-ui, sans-serif;
         }
 
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%);
+            background: linear-gradient(145deg, #f5f7fa 0%, #e9ecf2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(255,107,107,0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
         }
 
         #app {
             width: 100%;
-            max-width: 1000px;
-            position: relative;
-            z-index: 1;
+            max-width: 900px;
         }
 
-        /* 通用卡片样式 */
+        /* 卡片设计 */
         .card {
-            background: rgba(20, 20, 40, 0.85);
-            backdrop-filter: blur(15px);
-            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 107, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.2s ease;
         }
 
-        /* 登录/注册容器 */
+        /* 登录/注册卡片 */
         #auth-container {
             text-align: center;
-            animation: fadeIn 0.5s ease;
+            max-width: 440px;
+            margin: 0 auto;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .logo {
+            font-size: 48px;
+            margin-bottom: 8px;
         }
 
-        .game-logo {
-            font-size: 4em;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 0 30px rgba(255, 107, 107, 0.5));
+        h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
         }
 
-        #auth-container h2 {
-            color: #ff6b6b;
-            font-size: 2.8em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
-            letter-spacing: 2px;
-        }
-
-        #auth-container .subtitle {
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 1.1em;
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 28px;
+            font-size: 15px;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
         }
 
         .input-group input {
             width: 100%;
-            max-width: 350px;
-            padding: 15px 20px;
+            padding: 14px 18px;
             font-size: 16px;
-            border: none;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            background: white;
+            color: #0f172a;
             outline: none;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-group input::placeholder {
-            color: #666;
+            transition: all 0.2s;
         }
 
         .input-group input:focus {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: #ff6b6b;
-            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-group input::placeholder {
+            color: #94a3b8;
         }
 
         .btn-group {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
-            margin-top: 30px;
+            margin-top: 28px;
         }
 
         .btn {
-            padding: 14px 32px;
+            padding: 12px 28px;
             font-size: 16px;
+            font-weight: 600;
             border: none;
-            border-radius: 50px;
+            border-radius: 40px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-            letter-spacing: 1px;
+            transition: all 0.2s;
+            background: white;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #ff6b6b, #c0392b);
+            background: #3b82f6;
             color: white;
-            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+            border: none;
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.3);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: white;
+            border: 1px solid #cbd5e1;
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: #f8fafc;
+            border-color: #94a3b8;
         }
 
-        .btn-success {
-            background: linear-gradient(135deg, #2ed573, #1e8c5c);
-            color: white;
-            box-shadow: 0 5px 20px rgba(46, 213, 115, 0.3);
+        .btn-danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
         }
 
         .btn-small {
-            padding: 8px 18px;
+            padding: 8px 16px;
             font-size: 14px;
         }
 
-        /* 游戏主界面 */
-        #game-container {
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        /* 主应用界面 */
+        #app-container {
             display: none;
-            animation: fadeIn 0.5s ease;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 15px 20px;
-            background: rgba(20, 20, 40, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 60px;
-            border: 1px solid rgba(255, 107, 107, 0.2);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
         }
 
-        .game-title {
-            color: #ff6b6b;
-            font-size: 1.5em;
-            font-weight: bold;
+        .header-left h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .user-info {
+        .user-badge {
             display: flex;
             align-items: center;
-            gap: 15px;
-            color: white;
+            gap: 12px;
+            background: white;
+            padding: 6px 16px 6px 20px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
         }
 
         .user-email {
-            color: #ff9f43;
+            font-weight: 500;
+            color: #1e293b;
         }
 
-        .player-stats {
-            display: flex;
-            gap: 20px;
-            background: rgba(0,0,0,0.3);
-            padding: 8px 20px;
-            border-radius: 40px;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #ddd;
-        }
-
-        .stat-value {
-            color: #ff9f43;
-            font-weight: bold;
-        }
-
-        /* 大厅导航 */
-        .lobby-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            border-radius: 30px 30px 0 0;
-            color: #888;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab-btn.active {
-            color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-            border-bottom-color: #ff6b6b;
-        }
-
-        .tab-btn:hover {
-            color: #ff9f43;
-        }
-
-        .lobby-panel {
-            display: none;
-        }
-
-        .lobby-panel.active {
-            display: block;
-        }
-
-        /* 房间列表 */
-        .room-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .room-header h3 {
-            color: white;
-            font-size: 1.5em;
-        }
-
-        .create-room {
-            display: flex;
-            gap: 10px;
-        }
-
-        .create-room input, .create-room select {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            outline: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .create-room select option {
-            background: #1a1a3e;
-        }
-
-        .room-list {
-            display: grid;
-            gap: 15px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .room-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .room-list::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-
-        .room-list::-webkit-scrollbar-thumb {
-            background: rgba(255,107,107,0.3);
-            border-radius: 10px;
-        }
-
-        .room-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s;
-        }
-
-        .room-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 107, 107, 0.3);
-        }
-
-        .room-info h4 {
-            color: #ff9f43;
-            font-size: 1.2em;
-            margin-bottom: 5px;
-        }
-
-        .room-info p {
-            color: #aaa;
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .room-difficulty {
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-
-        .difficulty-normal { background: #2ed573; color: white; }
-        .difficulty-hard { background: #ff9f43; color: white; }
-        .difficulty-hell { background: #ff6b6b; color: white; }
-
-        .room-status {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
-        }
-
-        .status-waiting { background: #2ed573; color: white; }
-        .status-fighting { background: #ff6b6b; color: white; }
-        .status-ended { background: #747d8c; color: white; }
-
-        /* 角色面板 */
-        .character-panel {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .character-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            border: 1px solid rgba(255, 107, 107, 0.2);
-        }
-
-        .character-avatar {
-            font-size: 5em;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.3));
-        }
-
-        .character-name {
-            color: #ff6b6b;
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-
-        .character-stats {
-            text-align: left;
-            margin: 20px 0;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            color: #ddd;
-        }
-
-        .upgrade-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 25px;
-        }
-
-        .upgrade-title {
-            color: #ff9f43;
-            font-size: 1.3em;
-            margin-bottom: 20px;
-        }
-
-        .upgrade-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .upgrade-info h4 {
-            color: white;
-            margin-bottom: 5px;
-        }
-
-        .upgrade-info p {
-            color: #888;
-            font-size: 0.9em;
-        }
-
-        .upgrade-cost {
-            color: #ffd700;
-            font-weight: bold;
-        }
-
-        /* 商店面板 */
-        .shop-items {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .shop-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s;
-        }
-
-        .shop-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 107, 107, 0.3);
-        }
-
-        .shop-item-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-
-        .shop-item-name {
-            color: white;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .shop-item-desc {
-            color: #888;
-            font-size: 0.85em;
-            margin-bottom: 15px;
-        }
-
-        .shop-item-price {
-            color: #ffd700;
-            margin-bottom: 15px;
-        }
-
-        /* 战斗界面 */
-        #battle-container {
-            display: none;
-        }
-
-        .battle-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .boss-section {
-            text-align: center;
+        /* 发帖区域 */
+        .post-composer {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
             margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            border: 1px solid #eef2f6;
         }
 
-        .boss-name {
-            color: #ff6b6b;
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+        .composer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
-        .boss-difficulty-badge {
-            display: inline-block;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-        }
-
-        .boss-avatar {
-            font-size: 7em;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 40px rgba(255, 107, 107, 0.6));
-            animation: bossFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes bossFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .hp-bar-container {
-            width: 100%;
-            height: 35px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .hp-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ff4757, #ff6b6b, #ff9f43, #2ed573);
-            border-radius: 20px;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
-            position: relative;
-        }
-
-        .hp-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: hpShine 2s infinite;
-        }
-
-        @keyframes hpShine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .boss-hp-text {
+        .avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            background: #3b82f6;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            font-size: 1.3em;
             font-weight: bold;
+            font-size: 18px;
         }
 
-        .player-section {
+        .composer-input {
+            width: 100%;
+        }
+
+        .composer-input textarea {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            background: #fafbfc;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+
+        .composer-input textarea:focus {
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .composer-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        /* 帖子列表 */
+        .posts-feed {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            margin: 30px 0;
+            gap: 18px;
         }
 
-        .attack-btn {
-            padding: 20px 80px;
-            font-size: 1.6em;
-            background: linear-gradient(135deg, #ff6b6b, #c0392b);
-            color: white;
-            border: none;
-            border-radius: 60px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
-            transition: all 0.3s;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
+        .post-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #eef2f6;
+            transition: all 0.15s;
         }
 
-        .attack-btn:hover:not(:disabled) {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+        .post-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.05);
         }
 
-        .attack-btn:active:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .attack-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .skill-bar {
+        .post-header {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
-        .skill-btn {
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            background: #64748b;
             border-radius: 40px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-
-        .skill-btn:hover:not(:disabled) {
-            background: rgba(255, 107, 107, 0.3);
-            border-color: #ff6b6b;
-        }
-
-        .skill-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .my-damage {
-            color: #ff9f43;
-            font-size: 1.2em;
-        }
-
-        .ranking-section {
-            margin-top: 30px;
-        }
-
-        .ranking-list {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .ranking-item {
             display: flex;
-            justify-content: space-between;
-            padding: 10px 15px;
-            color: white;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .ranking-item:last-child {
-            border-bottom: none;
-        }
-
-        .ranking-rank {
-            color: #ff9f43;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-
-        .ranking-damage {
-            color: #2ed573;
-            font-weight: bold;
-        }
-
-        /* 结算界面 */
-        .reward-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
             align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-
-        .reward-content {
-            background: linear-gradient(135deg, #1a1a3e, #0d1b2a);
-            border-radius: 30px;
-            padding: 40px;
-            text-align: center;
-            max-width: 500px;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
-            animation: modalPop 0.5s ease;
-        }
-
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .reward-title {
-            color: #ffd700;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-
-        .reward-list {
-            margin: 30px 0;
-        }
-
-        .reward-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            justify-content: center;
             color: white;
-        }
-
-        .reward-value {
-            color: #ffd700;
             font-weight: bold;
         }
 
-        .error-message {
-            color: #ff6b6b;
-            margin-top: 10px;
-            font-size: 0.9em;
+        .post-author {
+            font-weight: 600;
+            color: #0f172a;
         }
 
-        .success-message {
-            color: #2ed573;
-            margin-top: 10px;
-            font-size: 0.9em;
+        .post-time {
+            font-size: 13px;
+            color: #64748b;
+            margin-left: 8px;
         }
 
-        .empty-state {
+        .post-content {
+            color: #1e293b;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .post-footer {
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 14px;
+            margin-top: 4px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .delete-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .empty-feed {
             text-align: center;
-            color: #aaa;
-            padding: 40px;
+            padding: 48px 20px;
+            color: #64748b;
+            background: #f8fafc;
+            border-radius: 24px;
+            font-size: 16px;
         }
 
-        .loading {
+        .loading-spinner {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #ff6b6b;
+            border: 3px solid rgba(59,130,246,0.2);
+            border-top-color: #3b82f6;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .damage-popup {
-            position: absolute;
-            color: #ff6b6b;
-            font-weight: bold;
-            font-size: 1.5em;
-            text-shadow: 0 0 10px rgba(255,107,107,0.8);
-            animation: damageFloat 1s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes damageFloat {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-50px); }
-        }
-
-        .back-btn {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #ff6b6b;
+        .footer-note {
+            margin-top: 24px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- 登录注册界面 -->
+        <!-- 登录/注册界面 -->
         <div id="auth-container" class="card">
-            <div class="game-logo">👹</div>
-            <h2>炎魔领主</h2>
-            <p class="subtitle">多人协作 · 讨伐恶龙</p>
+            <div class="logo">📝</div>
+            <h2>简帖</h2>
+            <p class="subtitle">写点什么，留给世界</p>
+            
             <div class="input-group">
-                <input type="email" id="email" placeholder="邮箱" />
+                <label>邮箱</label>
+                <input type="email" id="email" placeholder="your@email.com" autocomplete="email" />
             </div>
             <div class="input-group">
-                <input type="password" id="password" placeholder="密码（至少6位）" />
+                <label>密码</label>
+                <input type="password" id="password" placeholder="至少6位" autocomplete="current-password" />
             </div>
             <div id="auth-error" class="error-message"></div>
+            
             <div class="btn-group">
                 <button class="btn btn-primary" id="login-btn">登录</button>
                 <button class="btn btn-secondary" id="register-btn">注册</button>
             </div>
-            <p style="color: #aaa; margin-top: 20px; font-size: 0.85em;">
-                首次使用请点击注册，密码至少6位
+            <p style="margin-top: 20px; color: #64748b; font-size: 14px;">
+                首次使用自动注册，密码至少6位
             </p>
         </div>
 
-        <!-- 游戏主界面 -->
-        <div id="game-container">
-            <!-- 顶部栏 -->
+        <!-- 主应用界面 -->
+        <div id="app-container">
             <div class="header">
                 <div class="header-left">
-                    <div class="game-title">
-                        <span>👹</span> 炎魔领主
-                    </div>
-                    <div class="player-stats">
-                        <div class="stat-item">
-                            <span>💰</span>
-                            <span class="stat-value" id="gold-display">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span>💎</span>
-                            <span class="stat-value" id="soul-display">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span>⚔️</span>
-                            <span class="stat-value" id="atk-display">100</span>
-                        </div>
-                    </div>
+                    <h1>📝 简帖</h1>
                 </div>
-                <div class="user-info">
-                    <span>欢迎，<span id="user-email" class="user-email"></span></span>
-                    <button class="btn btn-secondary btn-small" id="logout-btn">登出</button>
+                <div class="user-badge">
+                    <span class="user-email" id="display-email"></span>
+                    <button class="btn btn-danger btn-small" id="logout-btn">登出</button>
                 </div>
             </div>
 
-            <!-- 大厅标签页 -->
-            <div class="lobby-tabs">
-                <button class="tab-btn active" data-tab="rooms">🏠 讨伐大厅</button>
-                <button class="tab-btn" data-tab="character">⚔️ 角色强化</button>
-                <button class="tab-btn" data-tab="shop">🛒 神秘商店</button>
-            </div>
-
-            <!-- 讨伐大厅 -->
-            <div id="rooms-panel" class="lobby-panel active card">
-                <div class="room-header">
-                    <h3>📋 讨伐队伍</h3>
-                    <div class="create-room">
-                        <input type="text" id="room-name-input" placeholder="队伍名称" maxlength="20" />
-                        <select id="difficulty-select">
-                            <option value="normal">普通</option>
-                            <option value="hard">困难</option>
-                            <option value="hell">地狱</option>
-                        </select>
-                        <button class="btn btn-primary btn-small" id="create-room-btn">创建队伍</button>
-                    </div>
+            <!-- 发帖框 -->
+            <div class="post-composer">
+                <div class="composer-header">
+                    <div class="avatar-placeholder" id="composer-avatar">👤</div>
+                    <div style="font-weight: 500; color: #1e293b;">分享你的想法...</div>
                 </div>
-                <div id="room-list" class="room-list">
-                    <div class="empty-state">加载中<span class="loading" style="margin-left: 10px;"></span></div>
+                <div class="composer-input">
+                    <textarea id="post-content" placeholder="写点什么吧… (支持换行)" maxlength="500"></textarea>
+                </div>
+                <div class="composer-actions">
+                    <button class="btn btn-primary" id="publish-btn">发布帖子</button>
                 </div>
             </div>
 
-            <!-- 角色强化 -->
-            <div id="character-panel" class="lobby-panel card">
-                <div class="character-panel">
-                    <div class="character-card">
-                        <div class="character-avatar">🧙</div>
-                        <div class="character-name" id="character-name">勇者</div>
-                        <div class="character-stats">
-                            <div class="stat-row">
-                                <span>攻击力</span>
-                                <span id="stat-atk">100</span>
-                            </div>
-                            <div class="stat-row">
-                                <span>暴击率</span>
-                                <span id="stat-crit">5%</span>
-                            </div>
-                            <div class="stat-row">
-                                <span>暴击伤害</span>
-                                <span id="stat-crit-dmg">150%</span>
-                            </div>
-                            <div class="stat-row">
-                                <span>攻击速度</span>
-                                <span id="stat-speed">1.0x</span>
-                            </div>
-                        </div>
-                        <p style="color: #888; margin-top: 15px;">🏆 讨伐次数: <span id="hunt-count">0</span></p>
-                    </div>
-                    <div class="upgrade-section">
-                        <div class="upgrade-title">⚡ 强化能力</div>
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <h4>攻击力 +10</h4>
-                                <p>当前: <span id="upgrade-atk">100</span></p>
-                            </div>
-                            <div>
-                                <span class="upgrade-cost">💰 <span id="atk-cost">100</span></span>
-                                <button class="btn btn-success btn-small upgrade-btn" data-type="atk" style="margin-left: 10px;">升级</button>
-                            </div>
-                        </div>
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <h4>暴击率 +1%</h4>
-                                <p>当前: <span id="upgrade-crit">5%</span></p>
-                            </div>
-                            <div>
-                                <span class="upgrade-cost">💎 <span id="crit-cost">50</span></span>
-                                <button class="btn btn-success btn-small upgrade-btn" data-type="crit" style="margin-left: 10px;">升级</button>
-                            </div>
-                        </div>
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <h4>暴击伤害 +10%</h4>
-                                <p>当前: <span id="upgrade-crit-dmg">150%</span></p>
-                            </div>
-                            <div>
-                                <span class="upgrade-cost">💎 <span id="crit-dmg-cost">80</span></span>
-                                <button class="btn btn-success btn-small upgrade-btn" data-type="critDmg" style="margin-left: 10px;">升级</button>
-                            </div>
-                        </div>
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <h4>攻击速度 +0.1x</h4>
-                                <p>当前: <span id="upgrade-speed">1.0x</span></p>
-                            </div>
-                            <div>
-                                <span class="upgrade-cost">💰 <span id="speed-cost">200</span></span>
-                                <button class="btn btn-success btn-small upgrade-btn" data-type="speed" style="margin-left: 10px;">升级</button>
-                            </div>
-                        </div>
-                    </div>
+            <!-- 帖子列表 -->
+            <h3 style="margin-bottom: 16px; color: #334155; font-weight: 600;">📋 最新讨论</h3>
+            <div id="posts-list" class="posts-feed">
+                <div class="empty-feed">
+                    <span class="loading-spinner"></span> 加载中...
                 </div>
             </div>
-
-            <!-- 神秘商店 -->
-            <div id="shop-panel" class="lobby-panel card">
-                <h3 style="color: white; margin-bottom: 20px;">🛒 神秘商店</h3>
-                <div class="shop-items">
-                    <div class="shop-item">
-                        <div class="shop-item-icon">💊</div>
-                        <div class="shop-item-name">生命药水</div>
-                        <div class="shop-item-desc">战斗中使用回复20%HP</div>
-                        <div class="shop-item-price">💰 50</div>
-                        <button class="btn btn-primary btn-small buy-btn" data-item="potion">购买</button>
-                    </div>
-                    <div class="shop-item">
-                        <div class="shop-item-icon">⚡</div>
-                        <div class="shop-item-name">力量卷轴</div>
-                        <div class="shop-item-desc">下次攻击伤害x2</div>
-                        <div class="shop-item-price">💎 30</div>
-                        <button class="btn btn-primary btn-small buy-btn" data-item="scroll">购买</button>
-                    </div>
-                    <div class="shop-item">
-                        <div class="shop-item-icon">🛡️</div>
-                        <div class="shop-item-name">护身符</div>
-                        <div class="shop-item-desc">永久+5攻击力</div>
-                        <div class="shop-item-price">💎 100</div>
-                        <button class="btn btn-primary btn-small buy-btn" data-item="charm">购买</button>
-                    </div>
-                </div>
+            <div class="footer-note">
+                每一条留言都值得被看见
             </div>
-
-            <!-- 战斗界面 -->
-            <div id="battle-container" class="card">
-                <div class="battle-header">
-                    <button class="back-btn" id="leave-battle-btn">← 返回大厅</button>
-                    <span class="player-count" id="player-count">👥 0 人战斗中</span>
-                </div>
-                
-                <div class="boss-section">
-                    <div class="boss-name" id="boss-name">炎魔领主</div>
-                    <div class="boss-difficulty-badge" id="boss-difficulty">普通</div>
-                    <div class="boss-avatar" id="boss-avatar">👹</div>
-                    <div class="hp-bar-container">
-                        <div id="boss-hp-bar" class="hp-bar" style="width: 100%;"></div>
-                    </div>
-                    <div class="boss-hp-text" id="boss-hp-text">10000 / 10000</div>
-                </div>
-
-                <div id="victory-message" class="victory-message" style="display: none; text-align: center;">
-                    🎉 胜利！炎魔领主已被击败！ 🎉
-                </div>
-
-                <div class="player-section">
-                    <button class="attack-btn" id="attack-btn">⚔️ 攻击</button>
-                    <div class="skill-bar">
-                        <button class="skill-btn" id="skill1-btn" disabled>💥 重击 (冷却中)</button>
-                        <button class="skill-btn" id="skill2-btn" disabled>💊 生命药水</button>
-                    </div>
-                    <div class="my-damage">
-                        我的输出: <span id="my-damage">0</span> 伤害
-                    </div>
-                </div>
-
-                <div class="ranking-section">
-                    <h3 style="color: white; margin-bottom: 15px;">🏆 伤害排行榜</h3>
-                    <div id="damage-ranking" class="ranking-list">
-                        <div class="empty-state">暂无数据</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 结算弹窗 -->
-    <div id="reward-modal" class="reward-modal" style="display: none;">
-        <div class="reward-content">
-            <div class="reward-title" id="reward-title">🏆 讨伐成功！</div>
-            <div class="reward-list">
-                <div class="reward-item">
-                    <span>💰 金币</span>
-                    <span class="reward-value" id="reward-gold">0</span>
-                </div>
-                <div class="reward-item">
-                    <span>💎 灵魂石</span>
-                    <span class="reward-value" id="reward-soul">0</span>
-                </div>
-                <div class="reward-item">
-                    <span>📊 伤害排名</span>
-                    <span class="reward-value" id="reward-rank">-</span>
-                </div>
-            </div>
-            <button class="btn btn-primary" id="claim-reward-btn">领取奖励</button>
         </div>
     </div>
 
@@ -1038,80 +450,98 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { 
-            getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-            signOut, onAuthStateChanged
+            getAuth, 
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { 
-            getFirestore, collection, addDoc, doc, updateDoc, onSnapshot,
-            query, orderBy, serverTimestamp, arrayUnion, getDocs, where,
-            setDoc, getDoc, increment, deleteDoc
+            getFirestore,
+            collection,
+            addDoc,
+            query,
+            orderBy,
+            onSnapshot,
+            serverTimestamp,
+            doc,
+            deleteDoc,
+            where,
+            limit
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-        import { 
-            getDatabase, ref, set, remove, onValue, runTransaction, onDisconnect
-        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+        // 你的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
             authDomain: "durango110.firebaseapp.com",
             projectId: "durango110",
             storageBucket: "durango110.firebasestorage.app",
             messagingSenderId: "674394866246",
-            appId: "1:674394866246:web:72ecd92fed2e703f124047",
-            databaseURL: "https://durango110-default-rtdb.asia-southeast1.firebasedatabase.app"
+            appId: "1:674394866246:web:72ecd92fed2e703f124047"
         };
 
+        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const rtdb = getDatabase(app);
-
-        // 游戏配置
-        const DIFFICULTY_CONFIG = {
-            normal: { name: '普通', hp: 10000, gold: 100, soul: 20, bossEmoji: '👹' },
-            hard: { name: '困难', hp: 25000, gold: 250, soul: 50, bossEmoji: '🔥' },
-            hell: { name: '地狱', hp: 50000, gold: 500, soul: 100, bossEmoji: '💀' }
-        };
-
-        const ATTACK_COOLDOWN = 300;
-        const SKILL_COOLDOWN = 5000;
-
-        // 全局状态
-        let currentUser = null;
-        let currentRoom = null;
-        let playerData = null;
-        let canAttack = true;
-        let skill1Ready = false;
-        let skill1Cooldown = 0;
-        let battleUnsubscribe = null;
-        let roomsUnsubscribe = null;
-        let inventory = { potion: 0, scroll: 0 };
 
         // DOM 元素
         const authContainer = document.getElementById('auth-container');
-        const gameContainer = document.getElementById('game-container');
-        const roomList = document.getElementById('room-list');
-        const bossHpBar = document.getElementById('boss-hp-bar');
-        const bossHpText = document.getElementById('boss-hp-text');
-        const myDamageSpan = document.getElementById('my-damage');
-        const damageRanking = document.getElementById('damage-ranking');
-        const playerCountSpan = document.getElementById('player-count');
-        const victoryMessage = document.getElementById('victory-message');
-        const attackBtn = document.getElementById('attack-btn');
-        const skill1Btn = document.getElementById('skill1-btn');
-        const skill2Btn = document.getElementById('skill2-btn');
-        const rewardModal = document.getElementById('reward-modal');
+        const appContainer = document.getElementById('app-container');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
         const authError = document.getElementById('auth-error');
-        const userEmailSpan = document.getElementById('user-email');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const publishBtn = document.getElementById('publish-btn');
+        const postContent = document.getElementById('post-content');
+        const postsList = document.getElementById('posts-list');
+        const displayEmail = document.getElementById('display-email');
+        const composerAvatar = document.getElementById('composer-avatar');
 
-        // 难度系数
-        const difficultyMap = { normal: 1, hard: 2.5, hell: 5 };
-        const difficultyNames = { normal: '普通', hard: '困难', hell: '地狱' };
-        const difficultyEmojis = { normal: '👹', hard: '🔥', hell: '💀' };
+        let currentUser = null;
+        let postsUnsubscribe = null;
 
-        // ============ 认证相关 ============
+        // ========== 辅助函数 ==========
+        function getAvatarChar(email) {
+            if (!email) return '?';
+            return email.charAt(0).toUpperCase();
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '刚刚';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins < 1) return '刚刚';
+            if (diffMins < 60) return `${diffMins}分钟前`;
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours}小时前`;
+            const diffDays = Math.floor(diffHours / 24);
+            if (diffDays < 7) return `${diffDays}天前`;
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        function getAuthErrorMessage(code) {
+            const messages = {
+                'auth/invalid-email': '邮箱格式不正确',
+                'auth/user-disabled': '账号已被禁用',
+                'auth/user-not-found': '账号不存在，请先注册',
+                'auth/wrong-password': '密码错误',
+                'auth/email-already-in-use': '该邮箱已被注册',
+                'auth/weak-password': '密码至少需要6位',
+                'auth/network-request-failed': '网络错误，请检查连接',
+                'auth/too-many-requests': '请求太频繁，请稍后再试'
+            };
+            return messages[code] || '操作失败，请重试';
+        }
+
+        // ========== 认证逻辑 ==========
         async function handleRegister() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
             
             if (!email || !password) {
                 authError.textContent = '请输入邮箱和密码';
@@ -1124,17 +554,16 @@
             
             try {
                 authError.textContent = '';
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                // 初始化玩家数据
-                await initializePlayerData(userCredential.user);
+                await createUserWithEmailAndPassword(auth, email, password);
+                // 注册成功会自动触发 onAuthStateChanged
             } catch (error) {
                 authError.textContent = getAuthErrorMessage(error.code);
             }
         }
 
         async function handleLogin() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
             
             if (!email || !password) {
                 authError.textContent = '请输入邮箱和密码';
@@ -1151,716 +580,191 @@
 
         async function handleLogout() {
             try {
-                if (currentRoom) await leaveRoom();
                 await signOut(auth);
             } catch (error) {
                 console.error('登出失败:', error);
             }
         }
 
-        function getAuthErrorMessage(code) {
-            const messages = {
-                'auth/invalid-email': '邮箱格式不正确',
-                'auth/user-not-found': '账号不存在',
-                'auth/wrong-password': '密码错误',
-                'auth/email-already-in-use': '该邮箱已被注册',
-                'auth/weak-password': '密码强度不足'
-            };
-            return messages[code] || '操作失败，请重试';
-        }
+        // ========== 帖子功能 ==========
+        async function publishPost() {
+            const content = postContent.value.trim();
+            if (!content) {
+                alert('内容不能为空');
+                return;
+            }
+            if (!currentUser) {
+                alert('请先登录');
+                return;
+            }
 
-        // ============ 玩家数据 ============
-        async function initializePlayerData(user) {
-            const playerRef = doc(db, "players", user.uid);
-            const playerSnap = await getDoc(playerRef);
-            if (!playerSnap.exists()) {
-                await setDoc(playerRef, {
-                    email: user.email,
-                    gold: 100,
-                    soul: 20,
-                    attack: 100,
-                    critRate: 5,
-                    critDamage: 150,
-                    attackSpeed: 1.0,
-                    huntCount: 0,
-                    inventory: { potion: 0, scroll: 0 },
+            try {
+                publishBtn.disabled = true;
+                publishBtn.textContent = '发布中...';
+                
+                await addDoc(collection(db, "posts"), {
+                    content: content,
+                    authorEmail: currentUser.email,
+                    authorId: currentUser.uid,
                     createdAt: serverTimestamp()
                 });
+                
+                postContent.value = '';
+            } catch (error) {
+                console.error('发布失败:', error);
+                alert('发布失败: ' + error.message);
+            } finally {
+                publishBtn.disabled = false;
+                publishBtn.textContent = '发布帖子';
             }
         }
 
-        async function loadPlayerData() {
+        async function deletePost(postId) {
             if (!currentUser) return;
-            const playerRef = doc(db, "players", currentUser.uid);
-            const playerSnap = await getDoc(playerRef);
-            if (playerSnap.exists()) {
-                playerData = playerSnap.data();
-                inventory = playerData.inventory || { potion: 0, scroll: 0 };
-                updatePlayerUI();
-            }
-        }
-
-        function updatePlayerUI() {
-            if (!playerData) return;
-            document.getElementById('gold-display').textContent = playerData.gold || 0;
-            document.getElementById('soul-display').textContent = playerData.soul || 0;
-            document.getElementById('atk-display').textContent = playerData.attack || 100;
-            
-            document.getElementById('stat-atk').textContent = playerData.attack || 100;
-            document.getElementById('stat-crit').textContent = (playerData.critRate || 5) + '%';
-            document.getElementById('stat-crit-dmg').textContent = (playerData.critDamage || 150) + '%';
-            document.getElementById('stat-speed').textContent = (playerData.attackSpeed || 1.0).toFixed(1) + 'x';
-            document.getElementById('hunt-count').textContent = playerData.huntCount || 0;
-            
-            document.getElementById('upgrade-atk').textContent = playerData.attack || 100;
-            document.getElementById('upgrade-crit').textContent = (playerData.critRate || 5) + '%';
-            document.getElementById('upgrade-crit-dmg').textContent = (playerData.critDamage || 150) + '%';
-            document.getElementById('upgrade-speed').textContent = (playerData.attackSpeed || 1.0).toFixed(1) + 'x';
-            
-            // 更新升级费用
-            document.getElementById('atk-cost').textContent = 100 + (playerData.attack - 100) * 2;
-            document.getElementById('crit-cost').textContent = 50 + (playerData.critRate - 5) * 10;
-            document.getElementById('crit-dmg-cost').textContent = 80 + (playerData.critDamage - 150) * 5;
-            document.getElementById('speed-cost').textContent = 200 + ((playerData.attackSpeed - 1) * 10) * 30;
-        }
-
-        // ============ 升级系统 ============
-        async function handleUpgrade(type) {
-            if (!playerData) return;
-            
-            const upgrades = {
-                atk: { cost: 100 + (playerData.attack - 100) * 2, currency: 'gold', field: 'attack', increment: 10, max: 500 },
-                crit: { cost: 50 + (playerData.critRate - 5) * 10, currency: 'soul', field: 'critRate', increment: 1, max: 50 },
-                critDmg: { cost: 80 + (playerData.critDamage - 150) * 5, currency: 'soul', field: 'critDamage', increment: 10, max: 300 },
-                speed: { cost: 200 + ((playerData.attackSpeed - 1) * 10) * 30, currency: 'gold', field: 'attackSpeed', increment: 0.1, max: 3.0 }
-            };
-            
-            const config = upgrades[type];
-            if (!config) return;
-            
-            const currentValue = playerData[config.field];
-            if (currentValue >= config.max) {
-                alert('已达最大等级！');
-                return;
-            }
-            
-            if (playerData[config.currency] < config.cost) {
-                alert(config.currency === 'gold' ? '金币不足！' : '灵魂石不足！');
-                return;
-            }
+            if (!confirm('确定删除这条帖子吗？')) return;
             
             try {
-                const playerRef = doc(db, "players", currentUser.uid);
-                const newValue = Math.min(currentValue + config.increment, config.max);
-                await updateDoc(playerRef, {
-                    [config.field]: newValue,
-                    [config.currency]: increment(-config.cost)
-                });
-                
-                playerData[config.field] = newValue;
-                playerData[config.currency] -= config.cost;
-                updatePlayerUI();
+                await deleteDoc(doc(db, "posts", postId));
             } catch (error) {
-                console.error('升级失败:', error);
+                console.error('删除失败:', error);
+                alert('删除失败，请重试');
             }
         }
 
-        // ============ 商店系统 ============
-        async function handleBuy(item) {
-            if (!playerData) return;
-            
-            const items = {
-                potion: { cost: 50, currency: 'gold' },
-                scroll: { cost: 30, currency: 'soul' },
-                charm: { cost: 100, currency: 'soul', effect: () => handleUpgrade('atk') }
-            };
-            
-            const config = items[item];
-            if (!config) return;
-            
-            if (playerData[config.currency] < config.cost) {
-                alert(config.currency === 'gold' ? '金币不足！' : '灵魂石不足！');
-                return;
-            }
-            
-            try {
-                const playerRef = doc(db, "players", currentUser.uid);
-                
-                if (item === 'charm') {
-                    await config.effect();
-                    await updateDoc(playerRef, { soul: increment(-config.cost) });
-                    playerData.soul -= config.cost;
-                } else {
-                    const newInventory = { ...inventory };
-                    newInventory[item] = (newInventory[item] || 0) + 1;
-                    await updateDoc(playerRef, {
-                        [config.currency]: increment(-config.cost),
-                        inventory: newInventory
-                    });
-                    playerData[config.currency] -= config.cost;
-                    inventory = newInventory;
-                }
-                
-                updatePlayerUI();
-                alert('购买成功！');
-            } catch (error) {
-                console.error('购买失败:', error);
-            }
-        }
-
-        // ============ 房间相关 ============
-        async function createRoom() {
-            const roomName = document.getElementById('room-name-input').value.trim() || `${currentUser.email?.split('@')[0]}的队伍`;
-            const difficulty = document.getElementById('difficulty-select').value;
-            const bossConfig = DIFFICULTY_CONFIG[difficulty];
-            
-            try {
-                const roomRef = await addDoc(collection(db, "rooms"), {
-                    name: roomName,
-                    hostId: currentUser.uid,
-                    hostEmail: currentUser.email,
-                    difficulty: difficulty,
-                    bossName: difficulty === 'normal' ? '炎魔领主' : difficulty === 'hard' ? '炎魔之王' : '灭世炎魔',
-                    bossHp: bossConfig.hp,
-                    maxHp: bossConfig.hp,
-                    bossEmoji: bossConfig.bossEmoji,
-                    status: 'waiting',
-                    rewards: { gold: bossConfig.gold, soul: bossConfig.soul },
-                    createdAt: serverTimestamp()
-                });
-
-                const playersRef = collection(db, "rooms", roomRef.id, "players");
-                await addDoc(playersRef, {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    damage: 0,
-                    joinedAt: serverTimestamp()
-                });
-
-                const battleRef = ref(rtdb, `battles/${roomRef.id}`);
-                await set(battleRef, {
-                    bossHp: bossConfig.hp,
-                    maxHp: bossConfig.hp,
-                    difficulty: difficulty,
-                    playerDamage: {},
-                    players: {
-                        [currentUser.uid]: {
-                            email: currentUser.email,
-                            online: true,
-                            damage: 0
-                        }
-                    }
-                });
-
-                document.getElementById('room-name-input').value = '';
-                await enterRoom(roomRef.id);
-            } catch (error) {
-                console.error('创建房间失败:', error);
-                alert('创建失败: ' + error.message);
-            }
-        }
-
-        async function joinRoomById(roomId) {
-            try {
-                await enterRoom(roomId);
-            } catch (error) {
-                alert('加入失败: ' + error.message);
-            }
-        }
-
-        async function enterRoom(roomId) {
-            if (currentRoom) await leaveRoom();
-
-            try {
-                const playersRef = collection(db, "rooms", roomId, "players");
-                const playerQuery = query(playersRef, where("uid", "==", currentUser.uid));
-                const playerSnapshot = await getDocs(playerQuery);
-                
-                if (playerSnapshot.empty) {
-                    await addDoc(playersRef, {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        damage: 0,
-                        joinedAt: serverTimestamp()
-                    });
-                }
-
-                const playerRef = ref(rtdb, `battles/${roomId}/players/${currentUser.uid}`);
-                await set(playerRef, {
-                    email: currentUser.email,
-                    online: true,
-                    damage: 0
-                });
-
-                onDisconnect(playerRef).update({ online: false });
-
-                currentRoom = roomId;
-                
-                document.querySelectorAll('.lobby-panel').forEach(p => p.classList.remove('active'));
-                document.getElementById('rooms-panel').style.display = 'none';
-                document.getElementById('battle-container').style.display = 'block';
-                victoryMessage.style.display = 'none';
-                
-                // 加载房间信息
-                const roomRef = doc(db, "rooms", roomId);
-                const roomSnap = await getDoc(roomRef);
-                if (roomSnap.exists()) {
-                    const data = roomSnap.data();
-                    document.getElementById('boss-name').textContent = data.bossName || '炎魔领主';
-                    document.getElementById('boss-avatar').textContent = data.bossEmoji || '👹';
-                    const diffName = difficultyNames[data.difficulty] || '普通';
-                    document.getElementById('boss-difficulty').textContent = diffName;
-                    document.getElementById('boss-difficulty').className = `boss-difficulty-badge difficulty-${data.difficulty}`;
-                }
-                
-                listenBattle(roomId);
-                listenRoomStatus(roomId);
-                
-                // 初始化技能状态
-                updateSkillButtons();
-                
-            } catch (error) {
-                console.error('进入房间失败:', error);
-                throw error;
-            }
-        }
-
-        async function leaveRoom() {
-            if (!currentRoom) return;
-            try {
-                const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser.uid}`);
-                await remove(playerRef);
-            } catch (error) {
-                console.error('离开房间失败:', error);
-            }
-            if (battleUnsubscribe) {
-                battleUnsubscribe();
-                battleUnsubscribe = null;
-            }
-            currentRoom = null;
-        }
-
-        function listenRoomStatus(roomId) {
-            const roomRef = doc(db, "rooms", roomId);
-            onSnapshot(roomRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.data();
-                    if (data.status === 'ended') {
-                        backToRoomList();
-                    }
-                }
-            });
-        }
-
-        async function backToRoomList() {
-            await leaveRoom();
-            document.getElementById('battle-container').style.display = 'none';
-            document.getElementById('rooms-panel').style.display = 'block';
-        }
-
-        // ============ 战斗相关 ============
-        function listenBattle(roomId) {
-            const battleRef = ref(rtdb, `battles/${roomId}`);
-            
-            battleUnsubscribe = onValue(battleRef, async (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
-
-                updateBattleUI(data);
-                
-                if (data.bossHp <= 0 && data.status !== 'ended') {
-                    await handleBossDefeated(roomId, data);
-                }
-            });
-        }
-
-        function updateBattleUI(data) {
-            const maxHp = data.maxHp || 10000;
-            const bossHp = data.bossHp || maxHp;
-            const hpPercent = (bossHp / maxHp) * 100;
-            const myDamage = data.playerDamage?.[currentUser.uid] || 0;
-            const players = data.players || {};
-            const onlineCount = Object.values(players).filter(p => p.online).length;
-
-            bossHpBar.style.width = Math.max(0, hpPercent) + '%';
-            bossHpText.textContent = `${Math.max(0, bossHp)} / ${maxHp}`;
-            myDamageSpan.textContent = myDamage;
-            playerCountSpan.textContent = `👥 ${onlineCount} 人战斗中`;
-            
-            updateRanking(data.playerDamage || {}, players);
-            
-            const isDead = bossHp <= 0;
-            attackBtn.disabled = isDead;
-            updateSkillButtons(isDead);
-        }
-
-        function updateSkillButtons(isDead = false) {
-            skill1Btn.disabled = isDead || !skill1Ready;
-            skill1Btn.textContent = skill1Ready ? '💥 重击 (200%伤害)' : `⏳ 冷却中`;
-            
-            const hasPotion = inventory.potion > 0;
-            skill2Btn.disabled = isDead || !hasPotion;
-            skill2Btn.textContent = hasPotion ? `💊 生命药水 (${inventory.potion})` : '💊 无药水';
-        }
-
-        function updateRanking(damages, players) {
-            if (!damages || Object.keys(damages).length === 0) {
-                damageRanking.innerHTML = '<div class="empty-state">暂无伤害数据</div>';
+        // 渲染帖子列表
+        function renderPosts(posts) {
+            if (!posts || posts.length === 0) {
+                postsList.innerHTML = '<div class="empty-feed">✨ 还没有帖子，快来发布第一条吧！</div>';
                 return;
             }
 
-            const ranking = Object.entries(damages)
-                .map(([uid, damage]) => ({
-                    uid,
-                    damage,
-                    email: players[uid]?.email || '未知玩家'
-                }))
-                .sort((a, b) => b.damage - a.damage)
-                .slice(0, 10);
-
-            damageRanking.innerHTML = ranking.map((item, index) => {
-                const isMe = item.uid === currentUser.uid;
-                const medals = ['🥇', '🥈', '🥉'];
-                return `
-                    <div class="ranking-item" style="${isMe ? 'background: rgba(255, 107, 107, 0.2);' : ''}">
-                        <span>
-                            <span class="ranking-rank">${index < 3 ? medals[index] : `#${index + 1}`}</span>
-                            ${item.email.split('@')[0]}
-                            ${isMe ? ' (我)' : ''}
-                        </span>
-                        <span class="ranking-damage">${item.damage} 伤害</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function handleAttack() {
-            if (!currentRoom || !canAttack) return;
-            
-            canAttack = false;
-            attackBtn.disabled = true;
-            
-            try {
-                let damage = playerData.attack || 100;
+            let html = '';
+            posts.forEach(post => {
+                const isAuthor = currentUser && post.authorId === currentUser.uid;
+                const avatarChar = getAvatarChar(post.authorEmail);
+                const timeStr = formatTime(post.createdAt);
                 
-                // 暴击判定
-                if (Math.random() * 100 < (playerData.critRate || 5)) {
-                    damage = Math.floor(damage * (playerData.critDamage || 150) / 100);
-                    showDamagePopup('暴击! ' + damage, '#ffd700');
-                } else {
-                    showDamagePopup('-' + damage, '#ff6b6b');
-                }
-                
-                const hpRef = ref(rtdb, `battles/${currentRoom}/bossHp`);
-                const damageRef = ref(rtdb, `battles/${currentRoom}/playerDamage/${currentUser.uid}`);
-                
-                await runTransaction(hpRef, (currentHp) => {
-                    if (currentHp === null) return null;
-                    return Math.max(0, currentHp - damage);
-                });
-                
-                await runTransaction(damageRef, (currentDamage) => {
-                    return (currentDamage || 0) + damage;
-                });
-                
-                // 攻击动画
-                const avatar = document.querySelector('.boss-avatar');
-                avatar.style.transform = 'scale(1.15)';
-                avatar.style.filter = 'drop-shadow(0 0 40px rgba(255, 107, 107, 0.8))';
-                setTimeout(() => {
-                    avatar.style.transform = 'scale(1)';
-                    avatar.style.filter = 'drop-shadow(0 0 40px rgba(255, 107, 107, 0.6))';
-                }, 100);
-                
-            } catch (error) {
-                console.error('攻击失败:', error);
-            }
-            
-            const cooldownTime = ATTACK_COOLDOWN / (playerData.attackSpeed || 1.0);
-            setTimeout(() => {
-                canAttack = true;
-                if (bossHpBar.style.width !== '0%') {
-                    attackBtn.disabled = false;
-                }
-            }, cooldownTime);
-        }
-
-        function showDamagePopup(text, color) {
-            const popup = document.createElement('div');
-            popup.className = 'damage-popup';
-            popup.textContent = text;
-            popup.style.color = color;
-            popup.style.left = '50%';
-            popup.style.top = '40%';
-            popup.style.transform = 'translate(-50%, -50%)';
-            document.querySelector('.boss-section').appendChild(popup);
-            setTimeout(() => popup.remove(), 1000);
-        }
-
-        async function handleSkill1() {
-            if (!currentRoom || !skill1Ready) return;
-            
-            skill1Ready = false;
-            updateSkillButtons();
-            
-            let damage = (playerData.attack || 100) * 2;
-            
-            // 暴击判定
-            if (Math.random() * 100 < (playerData.critRate || 5)) {
-                damage = Math.floor(damage * (playerData.critDamage || 150) / 100);
-                showDamagePopup('重击暴击! ' + damage, '#ffd700');
-            } else {
-                showDamagePopup('重击! -' + damage, '#ff6b6b');
-            }
-            
-            const hpRef = ref(rtdb, `battles/${currentRoom}/bossHp`);
-            const damageRef = ref(rtdb, `battles/${currentRoom}/playerDamage/${currentUser.uid}`);
-            
-            await runTransaction(hpRef, (currentHp) => Math.max(0, currentHp - damage));
-            await runTransaction(damageRef, (currentDamage) => (currentDamage || 0) + damage);
-            
-            // 冷却
-            setTimeout(() => {
-                skill1Ready = true;
-                updateSkillButtons();
-            }, SKILL_COOLDOWN);
-        }
-
-        async function handleSkill2() {
-            if (!currentRoom || inventory.potion <= 0) return;
-            
-            inventory.potion--;
-            
-            // 更新库存到数据库
-            const playerRef = doc(db, "players", currentUser.uid);
-            await updateDoc(playerRef, { inventory });
-            
-            // 回复效果（这里简单处理，显示治疗效果）
-            showDamagePopup('生命恢复!', '#2ed573');
-            
-            updateSkillButtons();
-        }
-
-        async function handleBossDefeated(roomId, battleData) {
-            victoryMessage.style.display = 'block';
-            attackBtn.disabled = true;
-            skill1Btn.disabled = true;
-            skill2Btn.disabled = true;
-            
-            try {
-                const roomRef = doc(db, "rooms", roomId);
-                const roomSnap = await getDoc(roomRef);
-                const roomData = roomSnap.data();
-                
-                // 计算排名和奖励
-                const damages = battleData.playerDamage || {};
-                const sortedDamages = Object.entries(damages).sort((a, b) => b[1] - a[1]);
-                const myRank = sortedDamages.findIndex(([uid]) => uid === currentUser.uid) + 1;
-                
-                let rewardGold = roomData.rewards?.gold || 100;
-                let rewardSoul = roomData.rewards?.soul || 20;
-                
-                // 排名奖励
-                if (myRank === 1) {
-                    rewardGold = Math.floor(rewardGold * 1.5);
-                    rewardSoul = Math.floor(rewardSoul * 1.5);
-                } else if (myRank <= 3) {
-                    rewardGold = Math.floor(rewardGold * 1.2);
-                    rewardSoul = Math.floor(rewardSoul * 1.2);
-                }
-                
-                // 更新房间状态
-                await updateDoc(roomRef, {
-                    status: 'ended',
-                    endedAt: serverTimestamp()
-                });
-                
-                // 更新玩家数据
-                const playerRef = doc(db, "players", currentUser.uid);
-                await updateDoc(playerRef, {
-                    gold: increment(rewardGold),
-                    soul: increment(rewardSoul),
-                    huntCount: increment(1)
-                });
-                
-                playerData.gold += rewardGold;
-                playerData.soul += rewardSoul;
-                playerData.huntCount++;
-                updatePlayerUI();
-                
-                // 显示奖励弹窗
-                document.getElementById('reward-gold').textContent = '+' + rewardGold;
-                document.getElementById('reward-soul').textContent = '+' + rewardSoul;
-                document.getElementById('reward-rank').textContent = myRank === 1 ? '🥇 第1名' : myRank === 2 ? '🥈 第2名' : myRank === 3 ? '🥉 第3名' : `第${myRank}名`;
-                rewardModal.style.display = 'flex';
-                
-            } catch (error) {
-                console.error('结算失败:', error);
-            }
-        }
-
-        // ============ 房间列表 ============
-        function listenRooms() {
-            const roomsRef = collection(db, "rooms");
-            const q = query(roomsRef, orderBy('createdAt', 'desc'));
-            
-            roomsUnsubscribe = onSnapshot(q, async (snapshot) => {
-                const rooms = [];
-                
-                for (const docSnap of snapshot.docs) {
-                    const data = docSnap.data();
-                    if (data.status !== 'ended') {
-                        const playersRef = collection(db, "rooms", docSnap.id, "players");
-                        const playersSnapshot = await getDocs(playersRef);
-                        
-                        rooms.push({ 
-                            id: docSnap.id, 
-                            ...data,
-                            playerCount: playersSnapshot.size
-                        });
-                    }
-                }
-                
-                renderRoomList(rooms);
-            });
-        }
-
-        function renderRoomList(rooms) {
-            if (rooms.length === 0) {
-                roomList.innerHTML = '<div class="empty-state">暂无队伍，创建一个吧！</div>';
-                return;
-            }
-
-            roomList.innerHTML = rooms.map(room => {
-                const statusClass = room.status === 'waiting' ? 'status-waiting' : 'status-fighting';
-                const statusText = room.status === 'waiting' ? '等待中' : '战斗中';
-                const hpPercent = ((room.bossHp || room.maxHp) / room.maxHp) * 100;
-                const diffName = difficultyNames[room.difficulty] || '普通';
-                const diffClass = `difficulty-${room.difficulty}`;
-                
-                return `
-                    <div class="room-item">
-                        <div class="room-info">
-                            <h4>${room.name || '未命名队伍'}</h4>
-                            <p>
-                                <span>👤 ${room.hostEmail?.split('@')[0]}</span>
-                                <span>👥 ${room.playerCount || 0} 人</span>
-                                <span class="room-difficulty ${diffClass}">${diffName}</span>
-                            </p>
-                            <p>❤️ HP: ${Math.round(hpPercent)}% | ${room.bossHp || room.maxHp} / ${room.maxHp}</p>
+                html += `
+                    <div class="post-card" data-post-id="${post.id}">
+                        <div class="post-header">
+                            <div class="post-avatar">${avatarChar}</div>
+                            <div>
+                                <span class="post-author">${post.authorEmail.split('@')[0]}</span>
+                                <span class="post-time">${timeStr}</span>
+                            </div>
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-                            <span class="room-status ${statusClass}">${statusText}</span>
-                            <button class="btn btn-primary btn-small join-room-btn" data-room-id="${room.id}">
-                                加入讨伐
-                            </button>
+                        <div class="post-content">${escapeHtml(post.content)}</div>
+                        <div class="post-footer">
+                            ${isAuthor ? 
+                                `<button class="delete-btn" data-post-id="${post.id}">🗑️ 删除</button>` : 
+                                '<span style="color:#cbd5e1; font-size:13px;">❤️ 感谢分享</span>'
+                            }
                         </div>
                     </div>
                 `;
-            }).join('');
-
-            document.querySelectorAll('.join-room-btn').forEach(btn => {
+            });
+            
+            postsList.innerHTML = html;
+            
+            // 绑定删除事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    joinRoomById(e.target.dataset.roomId);
+                    e.stopPropagation();
+                    const postId = btn.dataset.postId;
+                    deletePost(postId);
                 });
             });
         }
 
-        // ============ UI 切换 ============
+        // 简单的转义防止XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        // 监听帖子变化
+        function listenToPosts() {
+            if (postsUnsubscribe) postsUnsubscribe();
+            
+            const postsQuery = query(
+                collection(db, "posts"),
+                orderBy("createdAt", "desc"),
+                limit(50)
+            );
+            
+            postsUnsubscribe = onSnapshot(postsQuery, (snapshot) => {
+                const posts = [];
+                snapshot.forEach(doc => {
+                    posts.push({ id: doc.id, ...doc.data() });
+                });
+                renderPosts(posts);
+            }, (error) => {
+                console.error("监听帖子失败:", error);
+                postsList.innerHTML = '<div class="empty-feed">加载失败，请刷新页面</div>';
+            });
+        }
+
+        // ========== UI 切换 ==========
         function showAuthUI() {
             authContainer.style.display = 'block';
-            gameContainer.style.display = 'none';
+            appContainer.style.display = 'none';
+            if (postsUnsubscribe) {
+                postsUnsubscribe();
+                postsUnsubscribe = null;
+            }
         }
 
-        async function showGameUI(user) {
+        function showAppUI(user) {
             currentUser = user;
-            userEmailSpan.textContent = user.email;
+            displayEmail.textContent = user.email;
+            composerAvatar.textContent = getAvatarChar(user.email);
+            
             authContainer.style.display = 'none';
-            gameContainer.style.display = 'block';
+            appContainer.style.display = 'block';
             
-            await loadPlayerData();
-            
-            if (roomsUnsubscribe) roomsUnsubscribe();
-            listenRooms();
-            
-            // 监听玩家数据变化
-            onSnapshot(doc(db, "players", user.uid), (snap) => {
-                if (snap.exists()) {
-                    playerData = snap.data();
-                    inventory = playerData.inventory || { potion: 0, scroll: 0 };
-                    updatePlayerUI();
-                }
-            });
+            // 开始监听帖子
+            listenToPosts();
         }
 
-        // ============ 初始化 ============
+        // ========== 认证状态监听 ==========
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                showGameUI(user);
+                showAppUI(user);
             } else {
                 currentUser = null;
-                playerData = null;
                 showAuthUI();
-                if (roomsUnsubscribe) {
-                    roomsUnsubscribe();
-                    roomsUnsubscribe = null;
-                }
             }
         });
 
-        // ============ 事件绑定 ============
-        document.getElementById('register-btn').addEventListener('click', handleRegister);
-        document.getElementById('login-btn').addEventListener('click', handleLogin);
-        document.getElementById('logout-btn').addEventListener('click', handleLogout);
-        document.getElementById('create-room-btn').addEventListener('click', createRoom);
-        document.getElementById('leave-battle-btn').addEventListener('click', backToRoomList);
-        document.getElementById('attack-btn').addEventListener('click', handleAttack);
-        document.getElementById('skill1-btn').addEventListener('click', handleSkill1);
-        document.getElementById('skill2-btn').addEventListener('click', handleSkill2);
-        document.getElementById('claim-reward-btn').addEventListener('click', () => {
-            rewardModal.style.display = 'none';
-            backToRoomList();
+        // ========== 事件绑定 ==========
+        loginBtn.addEventListener('click', handleLogin);
+        registerBtn.addEventListener('click', handleRegister);
+        logoutBtn.addEventListener('click', handleLogout);
+        publishBtn.addEventListener('click', publishPost);
+        
+        // 快捷键: Ctrl+Enter 发布
+        postContent.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                publishPost();
+            }
         });
         
-        // 标签页切换
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.lobby-panel').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
-            });
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
         });
         
-        // 升级按钮
-        document.querySelectorAll('.upgrade-btn').forEach(btn => {
-            btn.addEventListener('click', () => handleUpgrade(btn.dataset.type));
-        });
-        
-        // 购买按钮
-        document.querySelectorAll('.buy-btn').forEach(btn => {
-            btn.addEventListener('click', () => handleBuy(btn.dataset.item));
-        });
-        
-        document.getElementById('password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleLogin();
-        });
-
-        window.addEventListener('beforeunload', async () => {
-            if (currentRoom && currentUser) {
-                const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser.uid}`);
-                await remove(playerRef);
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
             }
         });
 
-        // 初始化技能冷却
-        setInterval(() => {
-            if (!skill1Ready && currentRoom) {
-                skill1Ready = true;
-                updateSkillButtons();
-            }
-        }, SKILL_COOLDOWN);
-        skill1Ready = true;
+        // 初始化
+        console.log('✨ 简帖留言板已启动，Firebase 配置已加载');
     </script>
 </body>
 </html>
