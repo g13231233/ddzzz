@@ -2,8 +2,29 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>🐾 云养宠 · 毛球小窝</title>
+    
+    <!-- PWA 配置 -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        %22name%22: %22毛球小窝%22,
+        %22short_name%22: %22毛球%22,
+        %22description%22: %22在线养宠物，和好友一起成长%22,
+        %22start_url%22: %22.%22,
+        %22display%22: %22standalone%22,
+        %22theme_color%22: %22#ffaa7a%22,
+        %22background_color%22: %22#ffe6d5%22,
+        %22icons%22: [
+            {
+                %22src%22: %22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='10' y='70' font-size='70'%3E🐶%3C/text%3E%3C/svg%3E%22,
+                %22sizes%22: %22100x100%22,
+                %22type%22: %22image/svg+xml%22
+            }
+        ]
+    }">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <style>
         * {
             margin: 0;
@@ -27,7 +48,6 @@
             max-width: 1000px;
         }
 
-        /* 卡片设计 — 毛玻璃可爱风 */
         .card {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(20px);
@@ -38,7 +58,6 @@
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* 登录卡片 */
         #auth-container {
             text-align: center;
             max-width: 440px;
@@ -161,7 +180,6 @@
             font-weight: 500;
         }
 
-        /* 主应用 */
         #app-container {
             display: none;
         }
@@ -342,12 +360,6 @@
             box-shadow: 0 2px 0 #eecbad;
         }
 
-        .action-btn.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-            filter: grayscale(0.3);
-        }
-
         .action-cost {
             font-size: 15px;
             background: #ffdbb5;
@@ -470,7 +482,7 @@
 </head>
 <body>
     <div id="app">
-        <!-- 登录注册 -->
+        <!-- 登录注册界面 -->
         <div id="auth-container" class="card">
             <div class="logo">🐣</div>
             <h2>毛球小窝</h2>
@@ -564,16 +576,43 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- PWA Service Worker 注册 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(
+                    "data:application/javascript," + encodeURIComponent(`
+                        const CACHE_NAME = 'pet-app-v1';
+                        self.addEventListener('install', (event) => {
+                            event.waitUntil(caches.open(CACHE_NAME));
+                        });
+                        self.addEventListener('fetch', (event) => {
+                            const url = event.request.url;
+                            if (url.includes('firebase') || url.includes('googleapis')) {
+                                event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+                            } else {
+                                event.respondWith(
+                                    caches.match(event.request).then((response) => response || fetch(event.request))
+                                );
+                            }
+                        });
+                    `)
+                ).catch(err => console.log('SW注册失败: ', err));
+            });
+        }
+    </script>
+
+    <!-- 使用国内 CDN 加速的 Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        // 从 npmmirror 国内镜像加载 Firebase，速度更快
+        import { initializeApp } from "https://registry.npmmirror.com/@firebase/app/10.12.0/files/dist/index.esm.js";
         import { 
             getAuth, 
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
             signOut,
             onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        } from "https://registry.npmmirror.com/@firebase/auth/10.12.0/files/dist/index.esm.js";
         import { 
             getFirestore,
             doc,
@@ -587,9 +626,9 @@
             onSnapshot,
             serverTimestamp,
             increment
-        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        } from "https://registry.npmmirror.com/@firebase/firestore/10.12.0/files/dist/index.esm.js";
 
-        // 你的配置
+        // 你的 Firebase 配置（保持不变）
         const firebaseConfig = {
             apiKey: "AIzaSyCE4VKsO86HkPgfo9bDfx0oQ14zecg1wVA",
             authDomain: "durango110.firebaseapp.com",
@@ -603,7 +642,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 游戏配置
+        // ========== 游戏配置 ==========
         const EXP_TABLE = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000];
         const PET_AVATARS = ['🐶', '🐱', '🐼', '🦊', '🐸', '🐨', '🦝', '🐮'];
         
@@ -613,7 +652,7 @@
         let rankUnsubscribe = null;
         let currentRankType = 'level';
 
-        // DOM
+        // DOM 元素
         const authContainer = document.getElementById('auth-container');
         const appContainer = document.getElementById('app-container');
         const emailInput = document.getElementById('email');
@@ -637,7 +676,7 @@
         const workBtn = document.getElementById('work-btn');
         const rankingContainer = document.getElementById('ranking-container');
 
-        // 工具函数
+        // ========== 工具函数 ==========
         function getAvatarFromId(uid) {
             let hash = 0;
             for (let i = 0; i < uid.length; i++) {
@@ -677,7 +716,7 @@
             return messages[code] || '操作失败';
         }
 
-        // 初始化新宠物
+        // ========== 宠物数据初始化 ==========
         async function createPetForUser(user) {
             const avatar = getAvatarFromId(user.uid);
             const petRef = doc(db, "pets", user.uid);
@@ -686,7 +725,6 @@
                 name: user.email.split('@')[0] + '的毛球',
                 avatar: avatar,
                 exp: 0,
-                level: 1,
                 gold: 100,
                 mood: 80,
                 totalEarned: 0,
@@ -694,7 +732,6 @@
             });
         }
 
-        // 加载宠物数据
         function listenToPet(uid) {
             if (petUnsubscribe) petUnsubscribe();
             const petRef = doc(db, "pets", uid);
@@ -728,70 +765,44 @@
             displayEmail.textContent = petData.email || currentUser.email;
         }
 
-        // 互动操作
+        // ========== 互动操作 ==========
         async function doAction(type) {
             if (!currentUser || !petData) return;
             const petRef = doc(db, "pets", currentUser.uid);
             
             try {
                 let updateData = {};
-                let canPerform = true;
-                let message = '';
-                
                 const level = getLevelFromExp(petData.exp);
                 const workGold = 20 + (level * 2);
                 
                 switch(type) {
                     case 'feed':
                         if (petData.gold < 5) { alert('💰 金币不够啦'); return; }
-                        updateData = {
-                            exp: increment(15),
-                            gold: increment(-5),
-                            mood: increment(3)
-                        };
-                        message = '🍖 吃饱了好开心 +15EXP';
+                        updateData = { exp: increment(15), gold: increment(-5), mood: increment(3) };
                         break;
                     case 'play':
                         if (petData.gold < 8) { alert('💰 金币不够啦'); return; }
-                        updateData = {
-                            exp: increment(30),
-                            gold: increment(-8),
-                            mood: increment(10)
-                        };
-                        message = '🎾 玩得好尽兴 +30EXP';
+                        updateData = { exp: increment(30), gold: increment(-8), mood: increment(10) };
                         break;
                     case 'clean':
-                        updateData = {
-                            exp: increment(10),
-                            mood: increment(20)
-                        };
-                        message = '✨ 洗干净了，心情变好 +10EXP';
+                        updateData = { exp: increment(10), mood: increment(20) };
                         break;
                     case 'work':
                         if (petData.mood < 20) { alert('😢 心情太差，不想打工'); return; }
-                        updateData = {
-                            gold: increment(workGold),
-                            mood: increment(-15),
-                            totalEarned: increment(workGold)
-                        };
-                        message = `💼 打工赚了 ${workGold} 金币`;
+                        updateData = { gold: increment(workGold), mood: increment(-15), totalEarned: increment(workGold) };
                         break;
                 }
                 
                 await updateDoc(petRef, updateData);
-                
-                // 小动画反馈
                 petAvatar.style.transform = 'scale(1.1)';
                 setTimeout(() => petAvatar.style.transform = 'scale(1)', 100);
-                
-                // 升级检测会通过snapshot自动刷新
             } catch(err) {
                 console.error(err);
                 alert('操作失败');
             }
         }
 
-        // 排行榜监听
+        // ========== 排行榜 ==========
         function listenToRanking(type) {
             if (rankUnsubscribe) rankUnsubscribe();
             
@@ -854,7 +865,7 @@
             rankingContainer.innerHTML = html;
         }
 
-        // 认证
+        // ========== 认证 ==========
         async function handleRegister() {
             const email = emailInput.value.trim();
             const pwd = passwordInput.value;
@@ -865,6 +876,7 @@
                 await createUserWithEmailAndPassword(auth, email, pwd);
             } catch(e) { authError.textContent = getAuthErrorMessage(e.code); }
         }
+
         async function handleLogin() {
             const email = emailInput.value.trim();
             const pwd = passwordInput.value;
@@ -874,11 +886,12 @@
                 await signInWithEmailAndPassword(auth, email, pwd);
             } catch(e) { authError.textContent = getAuthErrorMessage(e.code); }
         }
+
         async function handleLogout() {
             await signOut(auth);
         }
 
-        // 切换UI
+        // ========== 认证状态监听 ==========
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -895,7 +908,7 @@
             }
         });
 
-        // 事件绑定
+        // ========== 事件绑定 ==========
         loginBtn.addEventListener('click', handleLogin);
         registerBtn.addEventListener('click', handleRegister);
         logoutBtn.addEventListener('click', handleLogout);
@@ -917,8 +930,7 @@
         passwordInput.addEventListener('keypress', (e) => { if(e.key==='Enter') handleLogin(); });
         emailInput.addEventListener('keypress', (e) => { if(e.key==='Enter') handleLogin(); });
 
-        // 初始
-        console.log('🐾 云养宠已启动');
+        console.log('🐾 云养宠已启动 (CDN加速+PWA优化版)');
     </script>
 </body>
 </html>
