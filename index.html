@@ -1,72 +1,282 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>联机测试</title>
-<style>
-body{background:#111;color:#fff;font-family:Arial;padding:20px;max-width:400px;margin:auto}
-.online{color:#0f0;margin:10px 0;font-size:16px}
-.chat{background:#222;height:250px;padding:10px;overflow-y:auto;border-radius:6px;margin:10px 0}
-input,button{padding:10px;width:100%;margin:5px 0;border-radius:6px;border:none}
-button{background:#09f;color:#fff}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星际金币 - 多人联机文字游戏</title>
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 引入 Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#722ED1',
+            dark: '#0F172A',
+            light: '#F8FAFC'
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .glass {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .btn-hover {
+        @apply transition-all duration-300 hover:scale-105 active:scale-95;
+      }
+      .card-shadow {
+        box-shadow: 0 8px 32px rgba(22, 93, 255, 0.2);
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="bg-dark text-light font-inter min-h-screen">
+  <!-- 登录注册界面 -->
+  <div id="authContainer" class="hidden flex-col items-center justify-center min-h-screen p-4">
+    <div class="glass w-full max-w-md rounded-2xl p-8 card-shadow">
+      <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-center mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        星际金币 - 登录/注册
+      </h1>
+      <div class="space-y-4">
+        <input id="emailInput" type="email" placeholder="输入邮箱" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+        <input id="passwordInput" type="password" placeholder="输入密码" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+        <button id="authBtn" class="w-full py-3 bg-primary rounded-lg font-semibold btn-hover">
+          登录 / 注册
+        </button>
+        <p id="authTip" class="text-red-400 text-center text-sm mt-2 hidden">请输入邮箱和密码</p>
+      </div>
+    </div>
+  </div>
 
-<div class="online" id="online">在线人数：加载中...</div>
-<button id="testBtn">测试按钮（可点）</button>
-<div class="chat" id="chat"></div>
-<input id="msg" placeholder="输入聊天内容">
-<button id="send">发送聊天</button>
+  <!-- 设置昵称界面 -->
+  <div id="nicknameContainer" class="hidden flex-col items-center justify-center min-h-screen p-4">
+    <div class="glass w-full max-w-md rounded-2xl p-8 card-shadow">
+      <h2 class="text-xl font-bold text-center mb-6">设置你的游戏昵称</h2>
+      <div class="space-y-4">
+        <input id="nicknameInput" placeholder="输入唯一游戏昵称" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+        <button id="saveNicknameBtn" class="w-full py-3 bg-primary rounded-lg font-semibold btn-hover">
+          确认进入游戏
+        </button>
+        <p id="nicknameTip" class="text-red-400 text-center text-sm mt-2 hidden">昵称已被占用，请更换</p>
+      </div>
+    </div>
+  </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
-<script>
-// 极简配置，无报错
-const firebaseConfig = {
-  apiKey: "AIzaSyC4RvmbE9HkZJz7IVDdQjLqVq1nHkVG9dQ",
-  databaseURL: "https://public-xianxiu-default-rtdb.firebaseio.com"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+  <!-- 游戏主界面 -->
+  <div id="gameContainer" class="hidden p-4 max-w-6xl mx-auto">
+    <!-- 顶部信息栏 -->
+    <div class="glass rounded-xl p-4 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div>
+        <h2 class="text-lg font-semibold"><i class="fa-solid fa-user mr-2 text-primary"></i><span id="playerName"></span></h2>
+        <p class="text-sm text-gray-400">当前金币: <span id="playerCoin" class="text-yellow-400 font-bold">0</span></p>
+      </div>
+      <button id="logoutBtn" class="px-4 py-2 bg-red-500 rounded-lg btn-hover text-sm">
+        <i class="fa-solid fa-right-from-bracket mr-1"></i>退出登录
+      </button>
+    </div>
 
-// 在线状态
-const uid = localStorage.getItem("uid") || Math.random().toString(36).substr(2,8);
-localStorage.setItem("uid", uid);
-const online = db.ref("online_test").child(uid);
-online.set(true);
-online.onDisconnect().remove();
+    <!-- 游戏核心区域 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- 左侧：在线玩家 -->
+      <div class="glass rounded-xl p-4 card-shadow">
+        <h3 class="font-bold mb-4 flex items-center"><i class="fa-solid fa-users text-green-400 mr-2"></i>在线玩家 <span id="onlineCount" class="ml-2 text-primary">0</span></h3>
+        <div id="onlineList" class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+          <p class="text-gray-400 text-sm">加载中...</p>
+        </div>
+      </div>
 
-// 在线人数
-db.ref("online_test").on("value", snap => {
-  document.getElementById("online").innerText = "在线人数：" + snap.size + " 人";
-});
+      <!-- 中间：赚金币按钮 -->
+      <div class="glass rounded-xl p-6 flex flex-col items-center justify-center card-shadow">
+        <h3 class="font-bold mb-8 text-xl">点击获取金币</h3>
+        <button id="getCoinBtn" class="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg btn-hover shadow-lg shadow-primary/30">
+          <i class="fa-solid fa-coins mr-2"></i>点击
+        </button>
+        <p class="mt-4 text-sm text-gray-400">每次点击 +1 金币</p>
+      </div>
 
-// 聊天
-const chatRef = db.ref("chat_test");
+      <!-- 右侧：金币排行榜 -->
+      <div class="glass rounded-xl p-4 card-shadow">
+        <h3 class="font-bold mb-4 flex items-center"><i class="fa-solid fa-ranking-star text-yellow-400 mr-2"></i>金币排行榜</h3>
+        <div id="rankList" class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+          <p class="text-gray-400 text-sm">加载中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-// 发送
-document.getElementById("send").onclick = () => {
-  const txt = document.getElementById("msg").value.trim();
-  if(txt){
-    chatRef.push({name:"玩家",msg:txt});
-    document.getElementById("msg").value = "";
-  }
-};
+  <script>
+    // 1. Firebase 配置（替换成你自己的！）
+    const firebaseConfig = {
+      apiKey: "你的apiKey",
+      authDomain: "你的authDomain",
+      projectId: "你的projectId",
+      storageBucket: "你的storageBucket",
+      messagingSenderId: "你的messagingSenderId",
+      appId: "你的appId"
+    };
 
-// 接收
-chatRef.limitToLast(20).on("child_added", s => {
-  const d = s.val();
-  const c = document.getElementById("chat");
-  c.innerHTML += d.name + "：" + d.msg + "<br>";
-  c.scrollTop = c.scrollHeight;
-});
+    // 初始化 Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-// 测试按钮
-document.getElementById("testBtn").onclick = ()=>{
-  alert("按钮正常可点击");
-};
-</script>
+    // DOM 元素
+    const authContainer = document.getElementById('authContainer');
+    const nicknameContainer = document.getElementById('nicknameContainer');
+    const gameContainer = document.getElementById('gameContainer');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const authBtn = document.getElementById('authBtn');
+    const authTip = document.getElementById('authTip');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const saveNicknameBtn = document.getElementById('saveNicknameBtn');
+    const nicknameTip = document.getElementById('nicknameTip');
+    const playerName = document.getElementById('playerName');
+    const playerCoin = document.getElementById('playerCoin');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const getCoinBtn = document.getElementById('getCoinBtn');
+    const onlineList = document.getElementById('onlineList');
+    const onlineCount = document.getElementById('onlineCount');
+    const rankList = document.getElementById('rankList');
+
+    // 2. 登录状态监听
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        const userDoc = await db.collection('players').doc(user.uid).get();
+        if (userDoc.exists) {
+          showGame(); // 已有昵称 → 进入游戏
+        } else {
+          showNickname(); // 无昵称 → 设置昵称
+        }
+      } else {
+        showAuth(); // 未登录 → 登录界面
+      }
+    });
+
+    // 3. 登录/注册功能
+    authBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      if (!email || !password) {
+        authTip.classList.remove('hidden');
+        authTip.textContent = '请输入邮箱和密码';
+        return;
+      }
+      authBtn.disabled = true;
+      authBtn.textContent = '处理中...';
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          await auth.createUserWithEmailAndPassword(email, password);
+        } else {
+          authTip.classList.remove('hidden');
+          authTip.textContent = err.message;
+        }
+      }
+      authBtn.disabled = false;
+      authBtn.textContent = '登录 / 注册';
+    });
+
+    // 4. 保存昵称（唯一校验）
+    saveNicknameBtn.addEventListener('click', async () => {
+      const nickname = nicknameInput.value.trim();
+      if (!nickname) return;
+      saveNicknameBtn.disabled = true;
+      saveNicknameBtn.textContent = '保存中...';
+      const check = await db.collection('players').where('nickname', '==', nickname).get();
+      if (!check.empty) {
+        nicknameTip.classList.remove('hidden');
+        saveNicknameBtn.disabled = false;
+        saveNicknameBtn.textContent = '确认进入游戏';
+        return;
+      }
+      await db.collection('players').doc(auth.currentUser.uid).set({
+        nickname,
+        coins: 0,
+        online: true,
+        lastActive: new Date()
+      });
+      showGame();
+    });
+
+    // 5. 点击赚金币
+    getCoinBtn.addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const ref = db.collection('players').doc(user.uid);
+      await ref.update({ coins: firebase.firestore.FieldValue.increment(1) });
+    });
+
+    // 6. 退出登录
+    logoutBtn.addEventListener('click', async () => {
+      await db.collection('players').doc(auth.currentUser.uid).update({ online: false });
+      await auth.signOut();
+    });
+
+    // 7. 实时监听在线玩家 & 排行榜
+    let onlineUnsub, rankUnsub;
+    function startListeners() {
+      // 在线玩家
+      onlineUnsub = db.collection('players').where('online', '==', true).onSnapshot(snap => {
+        onlineCount.textContent = snap.size;
+        onlineList.innerHTML = snap.docs.map(doc => `<p class="text-sm"><i class="fa-solid fa-circle text-green-400 text-xs mr-2"></i>${doc.data().nickname}</p>`).join('');
+      });
+      // 排行榜
+      rankUnsub = db.collection('players').orderBy('coins', 'desc').limit(20).onSnapshot(snap => {
+        rankList.innerHTML = snap.docs.map((doc, i) => `<p class="text-sm flex justify-between"><span>${i+1}. ${doc.data().nickname}</span><span class="text-yellow-400">${doc.data().coins}</span></p>`).join('');
+      });
+      // 当前玩家数据
+      db.collection('players').doc(auth.currentUser.uid).onSnapshot(doc => {
+        playerName.textContent = doc.data().nickname;
+        playerCoin.textContent = doc.data().coins;
+      });
+    }
+
+    // 8. 界面切换工具函数
+    function showAuth() {
+      authContainer.style.display = 'flex';
+      nicknameContainer.style.display = 'none';
+      gameContainer.style.display = 'none';
+      if (onlineUnsub) onlineUnsub();
+      if (rankUnsub) rankUnsub();
+    }
+    function showNickname() {
+      authContainer.style.display = 'none';
+      nicknameContainer.style.display = 'flex';
+      gameContainer.style.display = 'none';
+    }
+    async function showGame() {
+      await db.collection('players').doc(auth.currentUser.uid).update({ online: true });
+      authContainer.style.display = 'none';
+      nicknameContainer.style.display = 'none';
+      gameContainer.style.display = 'block';
+      startListeners();
+    }
+
+    // 页面关闭时设置离线
+    window.addEventListener('beforeunload', async () => {
+      if (auth.currentUser) {
+        await db.collection('players').doc(auth.currentUser.uid).update({ online: false });
+      }
+    });
+  </script>
 </body>
 </html>
