@@ -395,6 +395,20 @@
             color: #aaa;
             padding: 40px;
         }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -439,7 +453,7 @@
                     </div>
                 </div>
                 <div id="room-list" class="room-list">
-                    <div class="empty-state">加载中...</div>
+                    <div class="empty-state">加载中<span class="loading" style="margin-left: 10px;"></span></div>
                 </div>
             </div>
 
@@ -495,28 +509,26 @@
             getFirestore,
             collection,
             addDoc,
-            getDocs,
             doc,
             updateDoc,
-            deleteDoc,
             onSnapshot,
             query,
             orderBy,
             serverTimestamp,
             arrayUnion,
-            arrayRemove,
-            increment
+            deleteDoc,
+            writeBatch,
+            getDocs,
+            where
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { 
             getDatabase,
             ref,
             set,
-            get,
-            update,
+            remove,
             onValue,
             runTransaction,
-            onDisconnect,
-            remove
+            onDisconnect
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         // 你的 Firebase 配置
@@ -539,7 +551,7 @@
         // 游戏配置
         const BOSS_MAX_HP = 10000;
         const ATTACK_DAMAGE = 100;
-        const ATTACK_COOLDOWN = 500; // 毫秒
+        const ATTACK_COOLDOWN = 500;
 
         // 全局状态
         let currentUser = null;
@@ -636,33 +648,37 @@
             const roomName = roomNameInput.value.trim() || `${currentUser.email?.split('@')[0] || '玩家'}的房间`;
             
             try {
-                // 创建房间
+                // 创建房间 - 修复：不使用 serverTimestamp 在数组中
                 const roomRef = await addDoc(collection(db, "rooms"), {
                     name: roomName,
                     hostId: currentUser.uid,
                     hostEmail: currentUser.email,
-                    players: [{
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        joinedAt: serverTimestamp(),
-                        damage: 0
-                    }],
                     bossHp: BOSS_MAX_HP,
                     maxHp: BOSS_MAX_HP,
                     status: 'waiting',
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+
+                // 单独创建玩家子集合
+                const playersRef = collection(db, "rooms", roomRef.id, "players");
+                await addDoc(playersRef, {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    damage: 0,
+                    joinedAt: serverTimestamp()
                 });
 
                 // 初始化实时战斗数据
                 const battleRef = ref(rtdb, `battles/${roomRef.id}`);
                 await set(battleRef, {
                     bossHp: BOSS_MAX_HP,
-                    playerActions: {},
                     playerDamage: {},
                     players: {
                         [currentUser.uid]: {
                             email: currentUser.email,
-                            online: true
+                            online: true,
+                            damage: 0
                         }
                     }
                 });
@@ -685,45 +701,44 @@
         }
 
         async function enterRoom(roomId) {
-            // 如果已在其他房间，先离开
             if (currentRoom) {
                 await leaveRoom();
             }
 
-            const roomRef = doc(db, "rooms", roomId);
-            const battleRef = ref(rtdb, `battles/${roomId}`);
-
             try {
-                // 更新 Firestore 中的玩家列表
-                await updateDoc(roomRef, {
-                    players: arrayUnion({
+                // 检查玩家是否已在房间中
+                const playersRef = collection(db, "rooms", roomId, "players");
+                const playerQuery = query(playersRef, where("uid", "==", currentUser.uid));
+                const playerSnapshot = await getDocs(playerQuery);
+                
+                if (playerSnapshot.empty) {
+                    // 添加玩家到房间
+                    await addDoc(playersRef, {
                         uid: currentUser.uid,
                         email: currentUser.email,
-                        joinedAt: new Date(),
-                        damage: 0
-                    })
-                });
+                        damage: 0,
+                        joinedAt: serverTimestamp()
+                    });
+                }
 
                 // 更新 Realtime DB 中的在线玩家
                 const playerRef = ref(rtdb, `battles/${roomId}/players/${currentUser.uid}`);
                 await set(playerRef, {
                     email: currentUser.email,
-                    online: true
+                    online: true,
+                    damage: 0
                 });
 
                 // 设置断线自动清理
-                onDisconnect(playerRef).remove();
+                onDisconnect(playerRef).update({ online: false });
 
                 currentRoom = roomId;
                 
-                // 切换到战斗界面
                 roomListContainer.style.display = 'none';
                 battleContainer.style.display = 'block';
+                victoryMessage.style.display = 'none';
                 
-                // 开始监听战斗数据
                 listenBattle(roomId);
-                
-                // 监听房间状态变化
                 listenRoomStatus(roomId);
                 
             } catch (error) {
@@ -735,30 +750,15 @@
         async function leaveRoom() {
             if (!currentRoom) return;
 
-            const roomRef = doc(db, "rooms", currentRoom);
-            const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser.uid}`);
-
             try {
-                // 从 Firestore 移除玩家
-                const roomSnap = await getDocs(query(collection(db, "rooms")));
-                roomSnap.forEach(async (docSnap) => {
-                    if (docSnap.id === currentRoom) {
-                        const data = docSnap.data();
-                        const updatedPlayers = data.players.filter(p => p.uid !== currentUser.uid);
-                        await updateDoc(doc(db, "rooms", currentRoom), {
-                            players: updatedPlayers
-                        });
-                    }
-                });
-
-                // 从 Realtime DB 移除
+                // 更新在线状态为离线
+                const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser.uid}`);
                 await remove(playerRef);
                 
             } catch (error) {
                 console.error('离开房间失败:', error);
             }
 
-            // 取消监听
             if (battleUnsubscribe) {
                 battleUnsubscribe();
                 battleUnsubscribe = null;
@@ -773,7 +773,6 @@
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     if (data.status === 'ended') {
-                        // 房间已结束
                         alert('战斗已结束！');
                         backToRoomList();
                     }
@@ -785,7 +784,6 @@
             await leaveRoom();
             battleContainer.style.display = 'none';
             roomListContainer.style.display = 'block';
-            victoryMessage.style.display = 'none';
         }
 
         // ============ 战斗相关 ============
@@ -798,7 +796,6 @@
 
                 updateBattleUI(data);
                 
-                // 检查 Boss 是否死亡
                 if (data.bossHp <= 0) {
                     handleBossDefeated(roomId);
                 }
@@ -812,25 +809,14 @@
             const players = data.players || {};
             const onlineCount = Object.values(players).filter(p => p.online).length;
 
-            // 更新 Boss 血条
             bossHpBar.style.width = Math.max(0, hpPercent) + '%';
             bossHpText.textContent = `${Math.max(0, bossHp)} / ${BOSS_MAX_HP}`;
-            
-            // 更新我的伤害
             myDamageSpan.textContent = myDamage;
-            
-            // 更新在线人数
             playerCountSpan.textContent = `👥 ${onlineCount} 人战斗中`;
             
-            // 更新排行榜
             updateRanking(data.playerDamage || {}, players);
             
-            // 如果 Boss 死亡，禁用攻击按钮
-            if (bossHp <= 0) {
-                attackBtn.disabled = true;
-            } else {
-                attackBtn.disabled = false;
-            }
+            attackBtn.disabled = bossHp <= 0;
         }
 
         function updateRanking(damages, players) {
@@ -839,7 +825,6 @@
                 return;
             }
 
-            // 转换为数组并排序
             const ranking = Object.entries(damages)
                 .map(([uid, damage]) => ({
                     uid,
@@ -874,18 +859,26 @@
                 const hpRef = ref(rtdb, `battles/${currentRoom}/bossHp`);
                 const damageRef = ref(rtdb, `battles/${currentRoom}/playerDamage/${currentUser.uid}`);
                 
-                // 原子操作：扣血
                 await runTransaction(hpRef, (currentHp) => {
                     if (currentHp === null) return BOSS_MAX_HP;
                     return Math.max(0, currentHp - ATTACK_DAMAGE);
                 });
                 
-                // 累加伤害
                 await runTransaction(damageRef, (currentDamage) => {
                     return (currentDamage || 0) + ATTACK_DAMAGE;
                 });
                 
-                // 播放攻击动画效果
+                // 同步更新 Firestore
+                const playersRef = collection(db, "rooms", currentRoom, "players");
+                const playerQuery = query(playersRef, where("uid", "==", currentUser.uid));
+                const playerSnapshot = await getDocs(playerQuery);
+                
+                playerSnapshot.forEach(async (docSnap) => {
+                    await updateDoc(docSnap.ref, {
+                        damage: (docSnap.data().damage || 0) + ATTACK_DAMAGE
+                    });
+                });
+                
                 document.querySelector('.boss-avatar').style.transform = 'scale(1.1)';
                 setTimeout(() => {
                     document.querySelector('.boss-avatar').style.transform = 'scale(1)';
@@ -895,7 +888,6 @@
                 console.error('攻击失败:', error);
             }
             
-            // 攻击冷却
             setTimeout(() => {
                 canAttack = true;
                 const bossHp = bossHpBar.style.width;
@@ -909,10 +901,10 @@
             victoryMessage.style.display = 'block';
             attackBtn.disabled = true;
             
-            // 更新房间状态
             try {
                 await updateDoc(doc(db, "rooms", roomId), {
-                    status: 'ended'
+                    status: 'ended',
+                    updatedAt: serverTimestamp()
                 });
             } catch (error) {
                 console.error('更新房间状态失败:', error);
@@ -924,19 +916,24 @@
             const roomsRef = collection(db, "rooms");
             const q = query(roomsRef, orderBy('createdAt', 'desc'));
             
-            roomsUnsubscribe = onSnapshot(q, (snapshot) => {
+            roomsUnsubscribe = onSnapshot(q, async (snapshot) => {
                 const rooms = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    // 只显示未结束的房间
+                
+                for (const docSnap of snapshot.docs) {
+                    const data = docSnap.data();
                     if (data.status !== 'ended') {
+                        // 获取玩家数量
+                        const playersRef = collection(db, "rooms", docSnap.id, "players");
+                        const playersSnapshot = await getDocs(playersRef);
+                        
                         rooms.push({ 
-                            id: doc.id, 
+                            id: docSnap.id, 
                             ...data,
-                            players: data.players || []
+                            playerCount: playersSnapshot.size
                         });
                     }
-                });
+                }
+                
                 renderRoomList(rooms);
             });
         }
@@ -948,7 +945,6 @@
             }
 
             roomList.innerHTML = rooms.map(room => {
-                const playerCount = room.players?.length || 0;
                 const statusClass = room.status === 'waiting' ? 'status-waiting' : 
                                    room.status === 'fighting' ? 'status-fighting' : 'status-ended';
                 const statusText = room.status === 'waiting' ? '等待中' : 
@@ -960,7 +956,7 @@
                         <div class="room-info">
                             <h4>${room.name || '未命名房间'}</h4>
                             <p>👤 房主: ${room.hostEmail?.split('@')[0] || '未知'}</p>
-                            <p>👥 玩家: ${playerCount} 人</p>
+                            <p>👥 玩家: ${room.playerCount || 0} 人</p>
                             <p>❤️ Boss HP: ${Math.round(hpPercent)}%</p>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
@@ -973,7 +969,6 @@
                 `;
             }).join('');
 
-            // 绑定加入按钮事件
             document.querySelectorAll('.join-room-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const roomId = e.target.dataset.roomId;
@@ -996,7 +991,6 @@
             roomListContainer.style.display = 'block';
             battleContainer.style.display = 'none';
             
-            // 开始监听房间列表
             if (roomsUnsubscribe) roomsUnsubscribe();
             listenRooms();
         }
@@ -1023,17 +1017,15 @@
         document.getElementById('leave-battle-btn').addEventListener('click', backToRoomList);
         document.getElementById('attack-btn').addEventListener('click', handleAttack);
         
-        // 回车登录
         passwordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 handleLogin();
             }
         });
 
-        // 页面关闭前清理
         window.addEventListener('beforeunload', async () => {
-            if (currentRoom) {
-                const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser?.uid}`);
+            if (currentRoom && currentUser) {
+                const playerRef = ref(rtdb, `battles/${currentRoom}/players/${currentUser.uid}`);
                 await remove(playerRef);
             }
         });
