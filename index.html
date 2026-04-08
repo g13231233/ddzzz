@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>NetplayJS 多人游戏 - 好友对战</title>
+    <title>NetplayJS 多人游戏 - 稳定版</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,85 +12,177 @@
             margin: 0;
             padding: 20px;
         }
-        #gameContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        canvas {
-            border: 3px solid #00d9ff;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,217,255,0.3);
-        }
         #status {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             background: #16213e;
             border-radius: 8px;
             font-family: monospace;
         }
-        .instruction {
-            margin-top: 15px;
-            color: #aaa;
-            font-size: 14px;
-        }
         button {
             background: #00d9ff;
             border: none;
-            padding: 8px 20px;
-            margin: 5px;
+            padding: 10px 25px;
+            margin: 10px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-        }
-        button:hover {
-            background: #00a8cc;
+            font-size: 16px;
         }
         input {
-            padding: 8px;
-            margin: 5px;
+            padding: 10px;
+            margin: 10px;
             border-radius: 5px;
             border: none;
+            width: 200px;
+        }
+        .room-info {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 500px;
         }
     </style>
 </head>
 <body>
-    <h1>🎮 NetplayJS 多人竞技场</h1>
-    <p>红色方块是你，蓝色方块是对手 | 使用 WASD 或 方向键 移动</p>
+    <h1>🎮 NetplayJS 好友对战</h1>
     
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="800" height="500"></canvas>
+    <div id="lobby">
+        <div class="room-info">
+            <h3>🔗 连接设置</h3>
+            <p>方案1: 点击"创建房间"，把房间码发给朋友</p>
+            <p>方案2: 如果连不上，点"使用备用服务器"</p>
+        </div>
+        
+        <button onclick="createRoom()">🏠 创建房间（主机）</button>
+        <button onclick="showJoinUI()">🔌 加入房间</button>
+        <button onclick="useBackupServer()">🔄 使用备用服务器</button>
+        
+        <div id="joinPanel" style="display:none; margin-top:20px">
+            <input type="text" id="roomCode" placeholder="输入房间码">
+            <button onclick="joinRoom()">加入</button>
+        </div>
+        
         <div id="status">
-            🔄 正在连接...
+            💡 等待操作...
+        </div>
+    </div>
+    
+    <div id="gameArea" style="display:none">
+        <canvas id="gameCanvas" width="800" height="500" style="border:3px solid #00d9ff; border-radius:10px"></canvas>
+        <div id="gameStatus" class="room-info">
+            🎮 游戏中 | 房间: <span id="currentRoom"></span>
         </div>
         <div class="instruction">
-            💡 提示：第一个打开页面的人是主机，把链接分享给朋友即可加入<br>
-            🎯 目标：触碰对手即可得分！谁先拿到5分获胜
+            🎯 红色=你，蓝色=对手 | 移动触碰对手得分！先得5分获胜<br>
+            ⌨️ 控制: WASD 或 方向键
         </div>
     </div>
 
-    <!-- 引入 NetplayJS -->
     <script src="https://unpkg.com/[email protected]/dist/netplay.js"></script>
     
     <script>
-        // 定义我们的游戏类
+        let currentGame = null;
+        let currentRoomId = null;
+        
+        // 配置ICE服务器（帮助建立连接）
+        const iceServers = [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun.relay.metered.ca:80" }
+        ];
+        
+        function showJoinUI() {
+            document.getElementById('joinPanel').style.display = 'block';
+        }
+        
+        function useBackupServer() {
+            // 提示用户刷新页面时加参数
+            alert("请在浏览器地址栏的 .html 后面加上：\n#server=wss://netplayjs-signal.herokuapp.com\n\n然后按回车刷新页面重试");
+            
+            // 或者直接尝试重新初始化
+            location.reload();
+        }
+        
+        async function createRoom() {
+            document.getElementById('status').innerHTML = "🔄 正在创建房间，连接信令服务器...";
+            
+            try {
+                // 尝试连接到信令服务器
+                const game = new netplayjs.RollbackWrapper(CatchGame);
+                
+                // 监听连接状态
+                game.onStateChange = (state) => {
+                    console.log("Game state:", state);
+                    if (state === "connected") {
+                        document.getElementById('status').innerHTML = "✅ 已连接！等待朋友加入...";
+                    }
+                };
+                
+                await game.start();
+                currentGame = game;
+                
+                // 获取房间信息
+                setTimeout(() => {
+                    if (game.room) {
+                        currentRoomId = game.room.getRoomId();
+                        document.getElementById('status').innerHTML = 
+                            `✅ 房间创建成功！<br>📋 房间码: <strong style="font-size:20px">${currentRoomId}</strong><br>👥 当前人数: ${game.room.getPlayers().length}/2<br>📤 把房间码发给朋友，让他们点击"加入房间"`;
+                        document.getElementById('lobby').style.display = 'none';
+                        document.getElementById('gameArea').style.display = 'block';
+                        document.getElementById('currentRoom').innerText = currentRoomId;
+                    }
+                }, 2000);
+                
+            } catch(e) {
+                console.error(e);
+                document.getElementById('status').innerHTML = 
+                    "❌ 连接失败！<br>👉 试试点击「使用备用服务器」按钮，或刷新页面重试<br>错误: " + e.message;
+            }
+        }
+        
+        async function joinRoom() {
+            const roomCode = document.getElementById('roomCode').value.trim();
+            if (!roomCode) {
+                alert("请输入房间码");
+                return;
+            }
+            
+            document.getElementById('status').innerHTML = `🔄 正在加入房间 ${roomCode}...`;
+            
+            try {
+                const game = new netplayjs.RollbackWrapper(CatchGame);
+                await game.start({ roomId: roomCode });
+                currentGame = game;
+                
+                document.getElementById('status').innerHTML = "✅ 加入成功！游戏即将开始";
+                document.getElementById('lobby').style.display = 'none';
+                document.getElementById('gameArea').style.display = 'block';
+                document.getElementById('currentRoom').innerText = roomCode;
+                
+            } catch(e) {
+                console.error(e);
+                document.getElementById('status').innerHTML = 
+                    "❌ 加入失败！<br>👉 检查房间码是否正确，或让主机重新创建房间<br>错误: " + e.message;
+            }
+        }
+        
+        // ========== 游戏逻辑 ==========
         class CatchGame extends netplayjs.Game {
             constructor(canvas, players) {
                 super();
                 this.canvas = canvas;
                 
-                // 初始化玩家位置
                 this.playerPositions = new Map();
-                // 分数
                 this.scores = new Map();
-                // 游戏是否结束
                 this.gameOver = false;
                 this.winner = null;
+                this.myId = null;
                 
-                // 为每个玩家设置初始位置和分数
                 players.forEach((player, index) => {
                     const id = player.getID();
+                    if (player.isLocal()) this.myId = id;
                     if (index === 0) {
                         this.playerPositions.set(id, { x: 100, y: 250 });
                     } else {
@@ -98,39 +190,27 @@
                     }
                     this.scores.set(id, 0);
                 });
-                
-                // 记录自己的玩家ID
-                this.myId = players.find(p => p.isLocal())?.getID();
             }
             
-            // tick 函数：每帧执行，处理所有玩家的输入
             tick(playerInputs) {
                 if (this.gameOver) return;
-                
-                // 获取所有玩家的位置副本，用于碰撞检测
-                const positions = new Map(this.playerPositions);
                 
                 for (const [player, input] of playerInputs.entries()) {
                     const id = player.getID();
                     let pos = this.playerPositions.get(id);
                     if (!pos) continue;
                     
-                    // 从输入中获取方向键状态
                     const vel = input.arrowKeys();
                     const speed = 6;
                     
-                    // 更新位置
                     let newX = pos.x + vel.x * speed;
                     let newY = pos.y + vel.y * speed;
-                    
-                    // 边界限制
                     newX = Math.max(30, Math.min(770, newX));
                     newY = Math.max(30, Math.min(470, newY));
                     
                     this.playerPositions.set(id, { x: newX, y: newY });
                 }
                 
-                // 碰撞检测：红方(第一个玩家)触碰蓝方(第二个玩家)
                 const playersList = Array.from(playerInputs.keys());
                 if (playersList.length >= 2) {
                     const p1Id = playersList[0].getID();
@@ -141,17 +221,13 @@
                     if (p1Pos && p2Pos) {
                         const distance = Math.hypot(p1Pos.x - p2Pos.x, p1Pos.y - p2Pos.y);
                         if (distance < 40) {
-                            // 触碰得分，被触碰者重置位置
-                            const toucher = this.isPlayer1 ? p1Id : p2Id;
+                            const toucher = this.myId === p1Id ? p1Id : p2Id;
                             const victim = toucher === p1Id ? p2Id : p1Id;
                             
                             this.scores.set(toucher, this.scores.get(toucher) + 1);
-                            
-                            // 重置位置
                             this.playerPositions.set(p1Id, { x: 100, y: 250 });
                             this.playerPositions.set(p2Id, { x: 700, y: 250 });
                             
-                            // 检查胜利
                             if (this.scores.get(toucher) >= 5) {
                                 this.gameOver = true;
                                 this.winner = toucher;
@@ -161,61 +237,34 @@
                 }
             }
             
-            // 绘制游戏画面
             draw(canvas) {
                 const ctx = canvas.getContext("2d");
-                
-                // 背景
                 ctx.fillStyle = "#0f0f23";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // 绘制网格
-                ctx.strokeStyle = "#2a2a4a";
-                ctx.lineWidth = 1;
-                for (let i = 0; i < canvas.width; i += 50) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0);
-                    ctx.lineTo(i, canvas.height);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(canvas.width, i);
-                    ctx.stroke();
-                }
-                
-                // 绘制所有玩家
                 for (const [id, pos] of this.playerPositions.entries()) {
-                    // 区分颜色：自己是红色？需要判断一下
-                    // 简单起见：ID最小的红色，另一个蓝色
-                    const isRed = id === Math.min(...this.playerPositions.keys());
-                    ctx.fillStyle = isRed ? "#ff4444" : "#4488ff";
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = isRed ? "#ff0000" : "#0088ff";
+                    const isMe = id === this.myId;
+                    ctx.fillStyle = isMe ? "#ff4444" : "#4488ff";
                     ctx.fillRect(pos.x - 20, pos.y - 20, 40, 40);
                     ctx.fillStyle = "white";
                     ctx.font = "bold 16px Arial";
-                    ctx.fillText(isRed ? "P1" : "P2", pos.x - 8, pos.y + 6);
+                    ctx.fillText(isMe ? "你" : "对手", pos.x - 8, pos.y + 6);
                 }
-                ctx.shadowBlur = 0;
                 
-                // 显示分数
                 ctx.font = "bold 28px Arial";
                 ctx.fillStyle = "#ff8888";
                 const scoresList = Array.from(this.scores.entries());
                 if (scoresList[0]) ctx.fillText(`${scoresList[0][1]}`, 60, 60);
                 if (scoresList[1]) ctx.fillText(`${scoresList[1][1]}`, canvas.width - 100, 60);
                 
-                // 显示胜利信息
                 if (this.gameOver && this.winner !== undefined) {
                     ctx.font = "bold 36px Arial";
                     ctx.fillStyle = "#ffcc00";
-                    ctx.shadowBlur = 0;
                     const winnerText = this.winner === this.myId ? "🎉 你赢了！ 🎉" : "😢 对手赢了... 😢";
                     ctx.fillText(winnerText, canvas.width/2 - 120, canvas.height/2);
                 }
             }
             
-            // 序列化游戏状态（NetplayJS 需要）
             serialize() {
                 const positionsObj = {};
                 for (const [id, pos] of this.playerPositions.entries()) {
@@ -225,15 +274,9 @@
                 for (const [id, score] of this.scores.entries()) {
                     scoresObj[id] = score;
                 }
-                return {
-                    playerPositions: positionsObj,
-                    scores: scoresObj,
-                    gameOver: this.gameOver,
-                    winner: this.winner
-                };
+                return { playerPositions: positionsObj, scores: scoresObj, gameOver: this.gameOver, winner: this.winner };
             }
             
-            // 反序列化
             deserialize(value) {
                 this.playerPositions.clear();
                 for (const [id, pos] of Object.entries(value.playerPositions)) {
@@ -248,29 +291,8 @@
             }
         }
         
-        // 配置游戏参数
-        CatchGame.timestep = 1000 / 60;  // 60 FPS
+        CatchGame.timestep = 1000 / 60;
         CatchGame.canvasSize = { width: 800, height: 500 };
-        
-        // 启动游戏（使用 Rollback 回滚网络代码）
-        const canvas = document.getElementById("gameCanvas");
-        const statusDiv = document.getElementById("status");
-        
-        // 监听连接状态
-        const game = new netplayjs.RollbackWrapper(CatchGame);
-        
-        // 显示状态更新（可选，通过轮询）
-        setInterval(() => {
-            if (game.room) {
-                const playerCount = game.room.getPlayers().length;
-                statusDiv.innerHTML = `✅ 已连接 | 房间人数: ${playerCount}/2<br>🏆 先触碰对手5次获胜！`;
-            }
-        }, 1000);
-        
-        // 启动！
-        game.start();
-        
-        statusDiv.innerHTML = "🎮 游戏已启动！<br>📤 分享这个页面链接给朋友，他们打开后会自动加入";
     </script>
 </body>
 </html>
