@@ -1,759 +1,412 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>社区论坛 - 发帖与互动</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: #f3f4f6;
-            padding: 24px 16px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .card {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            color: #1f2937;
-        }
-        h2 {
-            font-size: 1.4rem;
-            margin-bottom: 16px;
-            color: #111827;
-            border-left: 5px solid #3b82f6;
-            padding-left: 14px;
-        }
-        .input-group {
-            margin-bottom: 18px;
-        }
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #4b5563;
-            margin-bottom: 6px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #d1d5db;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            transition: 0.2s;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-        }
-        button {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-        }
-        button.secondary {
-            background: #9ca3af;
-        }
-        button.secondary:hover {
-            background: #6b7280;
-        }
-        button.outline {
-            background: transparent;
-            border: 1px solid #3b82f6;
-            color: #3b82f6;
-        }
-        button.outline:hover {
-            background: #eff6ff;
-        }
-        .auth-toggle {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 0.85rem;
-            color: #4b5563;
-        }
-        .auth-toggle a {
-            color: #3b82f6;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .error-msg {
-            color: #dc2626;
-            font-size: 0.8rem;
-            margin-top: 8px;
-            background: #fee2e2;
-            padding: 8px 12px;
-            border-radius: 40px;
-        }
-        .success-msg {
-            color: #16a34a;
-            background: #e0f2e7;
-            padding: 8px 12px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-        }
-        .info-msg {
-            color: #0284c7;
-            background: #e0f2fe;
-            padding: 8px 12px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-        }
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            background: #f9fafb;
-            padding: 12px 18px;
-            border-radius: 60px;
-        }
-        .user-email {
-            font-weight: 500;
-            color: #1f2937;
-        }
-        .post-item {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 16px;
-            border: 1px solid #eef2f6;
-        }
-        .post-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #0f172a;
-        }
-        .post-content {
-            color: #334155;
-            line-height: 1.45;
-            margin-bottom: 12px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .post-meta {
-            font-size: 0.7rem;
-            color: #6c757d;
-            display: flex;
-            gap: 16px;
-            border-top: 1px solid #edf2f7;
-            padding-top: 10px;
-            margin-top: 6px;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6c757d;
-            background: #f9fafb;
-            border-radius: 24px;
-        }
-        .flex-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .badge {
-            background: #eef2ff;
-            color: #1e40af;
-            border-radius: 40px;
-            padding: 4px 12px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-        .loading-spinner {
-            text-align: center;
-            padding: 50px;
-            color: #6c757d;
-        }
-        .setup-guide {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 16px;
-            margin-top: 20px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-        }
-        .setup-guide pre {
-            background: #1f2937;
-            color: #e5e7eb;
-            padding: 12px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin-top: 10px;
-            font-size: 0.75rem;
-        }
-        @media (max-width: 640px) {
-            .card {
-                padding: 18px;
-            }
-            button {
-                width: 100%;
-            }
-            .flex-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>九州修仙录 - 官方攻略站</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f9fafb;
+      color: #222;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* 导航 */
+    header {
+      background: #1f2937;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 64px;
+    }
+
+    .nav h1 {
+      font-size: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.9);
+      text-decoration: none;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+    }
+
+    /* 头部 */
+    .hero {
+      background: linear-gradient(135deg, #374151, #1f2937);
+      color: white;
+      padding: 50px 0 60px;
+      text-align: center;
+    }
+
+    .hero h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      color: rgba(255,255,255,0.7);
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    /* 板块 */
+    .section {
+      padding: 40px 0;
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 22px;
+      margin-bottom: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 22px;
+      background: #3b82f6;
+      border-radius: 2px;
+    }
+
+    /* 攻略列表样式 */
+    .guide-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .guide-item {
+      background: white;
+      padding: 16px 20px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .guide-tag {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      min-width: 46px;
+      text-align: center;
+    }
+
+    .guide-link {
+      text-decoration: none;
+      color: #111;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .guide-link:hover {
+      color: #2563eb;
+    }
+
+    /* 图鉴卡片 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    /* 品阶颜色（按你要求） */
+    .tag-huang { background: #3b82f6; color: #fff; } /* 黄阶 蓝 */
+    .tag-xuan  { background: #8b5cf6; color: #fff; } /* 玄阶 紫 */
+    .tag-di    { background: #f59e0b; color: #fff; } /* 地阶 黄 */
+    .tag-tian  { background: #ef4444; color: #fff; } /* 天阶 红 */
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* 页脚 */
+    footer {
+      background: #1f2937;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 30px 0;
+      font-size: 14px;
+      margin-top: 40px;
+    }
+
+    /* 移动端 */
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+      .nav-links { gap: 14px; }
+    }
+  </style>
 </head>
+
 <body>
-<div class="container">
-    <div id="app">
-        <div class="loading-spinner">
-            <div>🔄 正在连接服务器...</div>
-            <div style="font-size: 0.85rem; margin-top: 12px; color: #9ca3af;">首次加载可能需要几秒钟</div>
-        </div>
+
+<header>
+  <div class="container nav">
+    <h1>九州修仙录 · 攻略站</h1>
+    <div class="nav-links">
+      <a onclick="show('home')">首页攻略</a>
+      <a onclick="show('gongfa')">功法图鉴</a>
+      <a onclick="show('equip')">装备图鉴</a>
+      <a onclick="show('material')">材料图鉴</a>
+      <a onclick="show('partner')">伙伴图鉴</a>
     </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h2>九州修仙录 全攻略合集</h2>
+    <p>收录全网最优质攻略 | 完整图鉴 | 新手到大神全指南</p>
+  </div>
+</section>
+
+<div class="container">
+
+<!-- ====================== 首页攻略（只在这里显示） ====================== -->
+<section class="section active" id="home">
+  <div class="section-title">优质攻略合集</div>
+  <div class="guide-list">
+
+    <div class="guide-item">
+      <span class="guide-tag" style="background:#ef4444">天阶</span>
+      <a class="guide-link" href="https://你的链接.com" target="_blank">零氪开局最强发育路线</a>
+    </div>
+
+    <div class="guide-item">
+      <span class="guide-tag" style="background:#f59e0b">地阶</span>
+      <a class="guide-link" href="https://你的链接.com" target="_blank">全职业功法搭配详解</a>
+    </div>
+
+    <div class="guide-item">
+      <span class="guide-tag" style="background:#8b5cf6">玄阶</span>
+      <a class="guide-link" href="https://你的链接.com" target="_blank">快速刷灵石技巧大全</a>
+    </div>
+
+    <div class="guide-item">
+      <span class="guide-tag" style="background:#3b82f6">黄阶</span>
+      <a class="guide-link" href="https://你的链接.com" target="_blank">新手避坑必看指南</a>
+    </div>
+
+    <div class="guide-item">
+      <span class="guide-tag" style="background:#ef4444">顶级</span>
+      <a class="guide-link" href="https://你的链接.com" target="_blank">全地图BOSS刷新位置</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ====================== 功法图鉴 ====================== -->
+<section class="section" id="gongfa">
+  <div class="section-title">功法图鉴</div>
+  <div class="grid">
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>引气诀</h3><p>基础吐纳功法，快速聚气。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>磐石诀</h3><p>小幅提升肉身防御。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>清风诀</h3><p>提升身法，闪避几率增加。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>烈焰诀</h3><p>火焰伤害，持续灼烧。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>金刚体</h3><p>防御大成，副本坦克必备。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>奔雷诀</h3><p>雷系爆发，伤害极高。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>九转玄功</h3><p>全属性暴涨，全能功法。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>万法归宗</h3><p>可兼容所有功法效果。</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ====================== 装备图鉴 ====================== -->
+<section class="section" id="equip">
+  <div class="section-title">装备图鉴</div>
+  <div class="grid">
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>粗布长袍</h3><p>新手防御装备。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>铁剑</h3><p>新手武器，攻击一般。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>灵纹袍</h3><p>灵气加持，防御中上。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>青锋剑</h3><p>锋利度高，攻速快。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>玄铁甲</h3><p>肉身防御极强。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>破山剑</h3><p>可破甲，输出稳定。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>九霄仙袍</h3><p>仙级防具，减免大量伤害。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>斩仙剑</h3><p>全服顶级武器。</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ====================== 材料图鉴 ====================== -->
+<section class="section" id="material">
+  <div class="section-title">材料图鉴</div>
+  <div class="grid">
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>普通草药</h3><p>炼制基础丹药。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>生铁</h3><p>打造低级装备。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>灵草</h3><p>炼制中级丹药。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>玄铁</h3><p>打造玄阶装备。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>地灵晶</h3><p>强化地阶装备。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>万年灵木</h3><p>稀有炼制材料。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>九天神石</h3><p>打造天阶装备必备。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>仙魂莲</h3><p>提升伙伴资质。</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ====================== 伙伴图鉴 ====================== -->
+<section class="section" id="partner">
+  <div class="section-title">伙伴图鉴</div>
+  <div class="grid">
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>药童</h3><p>辅助采药，增加产量。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-huang">黄阶</span><h3>护卫</h3><p>小幅提升主人防御。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>灵狐</h3><p>提升主人暴击率。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-xuan">玄阶</span><h3>剑仆</h3><p>协同作战，增加输出。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>玄甲战将</h3><p>强力坦克伙伴。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-di">地阶</span><h3>冰凤</h3><p>群体法术伤害。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>上古龙子</h3><p>全属性顶级伙伴。</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <span class="tag tag-tian">天阶</span><h3>九天仙姬</h3><p>治疗+输出全能。</p>
+    </div></div>
+  </div>
+</section>
+
 </div>
 
+<footer>
+  <div class="container">
+    九州修仙录 · 攻略站 &copy; 2025 | 纯静态GitHub站点 | 非官方
+  </div>
+</footer>
+
 <script>
-    // Supabase 配置
-    const SUPABASE_URL = 'https://eupvdbmvfqiuyverflys.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1cHZkYm12ZnFpdXl2ZXJmbHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTQyNjIsImV4cCI6MjA5MTIzMDI2Mn0._IqpB-zLhBZD5fRlnSVOaWjY3MCu2jYlRzexew8bgT0';
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // 全局状态
-    let currentSession = null;
-    let postsList = [];
-    let authMode = 'login';
-    let isInitialized = false;
-    let dbCheckComplete = false;
-    let tableExists = true;
-    
-    const appContainer = document.getElementById('app');
-    
-    // 辅助函数
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function formatDate(isoString) {
-        if (!isoString) return '未知时间';
-        const date = new Date(isoString);
-        if (isNaN(date.getTime())) return isoString;
-        return date.toLocaleString('zh-CN', { hour12: false });
-    }
-    
-    function showError(containerId, message) {
-        const el = document.getElementById(containerId);
-        if (el) el.innerHTML = `<div class="error-msg">⚠️ ${message}</div>`;
-    }
-    
-    function clearError(containerId) {
-        const el = document.getElementById(containerId);
-        if (el) el.innerHTML = '';
-    }
-    
-    function showSuccess(containerId, message) {
-        const el = document.getElementById(containerId);
-        if (el) el.innerHTML = `<div class="success-msg">✅ ${message}</div>`;
-        setTimeout(() => {
-            if (el && el.innerHTML.includes(message)) el.innerHTML = '';
-        }, 3000);
-    }
-    
-    // 检查数据库表是否存在
-    async function checkDatabaseTable() {
-        try {
-            // 尝试查询 posts 表是否存在
-            const { error } = await supabase
-                .from('posts')
-                .select('id', { count: 'exact', head: true });
-            
-            if (error) {
-                if (error.message && (error.message.includes('does not exist') || error.message.includes('relation'))) {
-                    console.warn('Posts 表不存在');
-                    tableExists = false;
-                    return false;
-                }
-                // 其他错误可能是权限问题，但表可能存在
-                console.warn('查询 posts 表出错:', error.message);
-                tableExists = true; // 假设存在，让用户尝试
-                return true;
-            }
-            tableExists = true;
-            return true;
-        } catch (err) {
-            console.error('检查数据库表失败:', err);
-            tableExists = false;
-            return false;
-        }
-    }
-    
-    // 获取帖子
-    async function fetchPosts() {
-        if (!tableExists) {
-            postsList = [];
-            renderApp();
-            return;
-        }
-        
-        try {
-            const { data, error } = await supabase
-                .from('posts')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            if (error) {
-                console.error('获取帖子失败:', error);
-                if (error.message.includes('does not exist')) {
-                    tableExists = false;
-                }
-                postsList = [];
-            } else {
-                postsList = data || [];
-            }
-            renderApp();
-        } catch (err) {
-            console.error('获取帖子异常:', err);
-            postsList = [];
-            renderApp();
-        }
-    }
-    
-    // 创建帖子
-    async function createPost(title, content) {
-        if (!currentSession) {
-            alert("请先登录");
-            return false;
-        }
-        
-        if (!title.trim() || !content.trim()) {
-            alert("标题和内容不能为空");
-            return false;
-        }
-        
-        if (!tableExists) {
-            alert("数据库表未配置，请先按照页面底部的指引创建 'posts' 表");
-            return false;
-        }
-        
-        try {
-            const { data, error } = await supabase
-                .from('posts')
-                .insert([{
-                    title: title.trim(),
-                    content: content.trim(),
-                    user_id: currentSession.user.id,
-                    user_email: currentSession.user.email,
-                    created_at: new Date().toISOString()
-                }])
-                .select();
-            
-            if (error) {
-                console.error('发布失败:', error);
-                if (error.message.includes('does not exist')) {
-                    tableExists = false;
-                    alert("数据表不存在，请先创建 posts 表");
-                } else {
-                    alert("发布失败: " + (error.message || "未知错误"));
-                }
-                return false;
-            }
-            
-            await fetchPosts();
-            return true;
-        } catch (err) {
-            console.error('发布异常:', err);
-            alert("发布失败: " + err.message);
-            return false;
-        }
-    }
-    
-    // 注册
-    async function handleRegister(email, password, confirmPwd, errorContainerId) {
-        clearError(errorContainerId);
-        
-        if (!email || !password) {
-            showError(errorContainerId, "邮箱和密码都是必填项");
-            return false;
-        }
-        
-        if (password !== confirmPwd) {
-            showError(errorContainerId, "两次输入的密码不一致");
-            return false;
-        }
-        
-        if (password.length < 6) {
-            showError(errorContainerId, "密码长度至少6位");
-            return false;
-        }
-        
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    emailRedirectTo: window.location.origin
-                }
-            });
-            
-            if (error) throw error;
-            
-            if (data.user) {
-                showSuccess(errorContainerId, "注册成功！请登录您的账户");
-                authMode = 'login';
-                renderApp();
-                return true;
-            }
-        } catch (err) {
-            showError(errorContainerId, err.message);
-            return false;
-        }
-    }
-    
-    // 登录
-    async function handleLogin(email, password, errorContainerId) {
-        clearError(errorContainerId);
-        
-        if (!email || !password) {
-            showError(errorContainerId, "请输入邮箱和密码");
-            return;
-        }
-        
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
-            
-            if (error) throw error;
-            
-            if (data.session) {
-                showSuccess(errorContainerId, "登录成功！");
-            }
-        } catch (err) {
-            showError(errorContainerId, err.message);
-        }
-    }
-    
-    // 退出登录
-    async function handleLogout() {
-        await supabase.auth.signOut();
-    }
-    
-    // 渲染登录/注册页面
-    function renderAuthPage() {
-        const isLoginMode = authMode === 'login';
-        const setupGuideHtml = !tableExists ? `
-            <div class="setup-guide">
-                <strong>📋 数据库配置指引</strong><br>
-                检测到 "posts" 表不存在，请先在 Supabase SQL Editor 中执行以下命令：
-                <pre>CREATE TABLE IF NOT EXISTS posts (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    user_id UUID NOT NULL,
-    user_email TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Enable insert for authenticated users" ON posts
-    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "Enable select for all users" ON posts
-    FOR SELECT USING (true);
-
-CREATE POLICY "Enable update for own posts" ON posts
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Enable delete for own posts" ON posts
-    FOR DELETE USING (auth.uid() = user_id);</pre>
-                <button id="retryCheckBtn" style="margin-top: 12px; background: #f59e0b;">✅ 我已经创建好表，重新检测</button>
-            </div>
-        ` : '';
-        
-        const html = `
-            <div class="card">
-                <h1 style="text-align: center;">📝 社区论坛</h1>
-                <p style="text-align: center; color: #6c757d; margin-bottom: 24px;">分享观点 · 连接彼此</p>
-                <div style="max-width: 400px; margin: 0 auto;">
-                    <h2>${isLoginMode ? '登录账户' : '创建新账户'}</h2>
-                    <div id="authErrorMsg"></div>
-                    <div class="input-group">
-                        <label>电子邮箱</label>
-                        <input type="email" id="authEmail" placeholder="your@email.com" autocomplete="email">
-                    </div>
-                    <div class="input-group">
-                        <label>密码</label>
-                        <input type="password" id="authPassword" placeholder="密码 (至少6位)" autocomplete="current-password">
-                    </div>
-                    ${!isLoginMode ? `
-                        <div class="input-group">
-                            <label>确认密码</label>
-                            <input type="password" id="authConfirmPwd" placeholder="再次输入密码">
-                        </div>
-                    ` : ''}
-                    <button id="authSubmitBtn" style="width: 100%; margin-top: 8px;">${isLoginMode ? '登录' : '注册'}</button>
-                    <div class="auth-toggle">
-                        ${isLoginMode ? '还没有账号？' : '已有账号？'} 
-                        <a id="toggleAuthMode">${isLoginMode ? '立即注册' : '去登录'}</a>
-                    </div>
-                </div>
-            </div>
-            ${setupGuideHtml}
-        `;
-        
-        appContainer.innerHTML = html;
-        
-        // 绑定事件
-        const submitBtn = document.getElementById('authSubmitBtn');
-        const toggleLink = document.getElementById('toggleAuthMode');
-        const retryBtn = document.getElementById('retryCheckBtn');
-        const emailInput = document.getElementById('authEmail');
-        const pwdInput = document.getElementById('authPassword');
-        const confirmInput = document.getElementById('authConfirmPwd');
-        
-        if (submitBtn) {
-            submitBtn.addEventListener('click', async () => {
-                const email = emailInput?.value.trim() || '';
-                const password = pwdInput?.value || '';
-                if (isLoginMode) {
-                    await handleLogin(email, password, 'authErrorMsg');
-                } else {
-                    const confirmPwd = confirmInput?.value || '';
-                    await handleRegister(email, password, confirmPwd, 'authErrorMsg');
-                }
-            });
-        }
-        
-        if (toggleLink) {
-            toggleLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                authMode = isLoginMode ? 'register' : 'login';
-                renderAuthPage();
-            });
-        }
-        
-        if (retryBtn) {
-            retryBtn.addEventListener('click', async () => {
-                await checkDatabaseTable();
-                renderAuthPage();
-                if (tableExists) {
-                    await fetchPosts();
-                }
-            });
-        }
-        
-        // 回车提交
-        const inputs = [emailInput, pwdInput, confirmInput].filter(Boolean);
-        inputs.forEach(inp => {
-            inp.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submitBtn?.click();
-            });
-        });
-    }
-    
-    // 渲染主页面
-    function renderMainPage(user) {
-        const emailDisplay = user?.email || '用户';
-        const setupWarningHtml = !tableExists ? `
-            <div class="setup-guide" style="margin-bottom: 16px;">
-                ⚠️ 检测到 "posts" 表不存在，无法发布和查看帖子。请先按照指引创建数据表。
-                <button id="retryCheckBtnMain" style="margin-top: 8px; background: #f59e0b; font-size: 0.8rem;">重新检测</button>
-            </div>
-        ` : '';
-        
-        const postsHtml = !tableExists ? 
-            `<div class="empty-state">📋 请先配置数据库表以查看帖子</div>` :
-            (postsList.length === 0 ? 
-                `<div class="empty-state">📭 暂无帖子，成为第一个发帖的人吧！</div>` :
-                postsList.map(post => `
-                    <div class="post-item">
-                        <div class="post-title">${escapeHtml(post.title)}</div>
-                        <div class="post-content">${escapeHtml(post.content)}</div>
-                        <div class="post-meta">
-                            <span>✍️ ${escapeHtml(post.user_email || '匿名')}</span>
-                            <span>📅 ${formatDate(post.created_at)}</span>
-                            ${post.user_id === user.id ? '<span class="badge">我的帖子</span>' : ''}
-                        </div>
-                    </div>
-                `).join(''));
-        
-        const html = `
-            <div class="user-info">
-                <span class="user-email">👤 ${escapeHtml(emailDisplay)}</span>
-                <button id="logoutBtn" class="outline" style="padding: 6px 16px;">退出登录</button>
-            </div>
-            ${setupWarningHtml}
-            ${tableExists ? `
-            <div class="card">
-                <h2>📝 发布新帖子</h2>
-                <div id="postFormError"></div>
-                <div class="input-group">
-                    <label>标题</label>
-                    <input type="text" id="postTitle" placeholder="给帖子起个响亮的标题" maxlength="100">
-                </div>
-                <div class="input-group">
-                    <label>内容</label>
-                    <textarea id="postContent" rows="4" placeholder="分享你的想法..." maxlength="2000"></textarea>
-                </div>
-                <div class="flex-row">
-                    <button id="publishBtn">✈️ 发布帖子</button>
-                    <button id="clearBtn" class="secondary" type="button">清空</button>
-                </div>
-            </div>
-            ` : ''}
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                    <h2>📌 最新帖子</h2>
-                    ${tableExists ? `<span style="font-size: 0.7rem; background:#e2e8f0; padding:4px 12px; border-radius:30px;">${postsList.length} 篇</span>` : ''}
-                </div>
-                <div id="postsListContainer">
-                    ${postsHtml}
-                </div>
-            </div>
-        `;
-        
-        appContainer.innerHTML = html;
-        
-        // 绑定事件
-        if (tableExists) {
-            const publishBtn = document.getElementById('publishBtn');
-            const clearBtn = document.getElementById('clearBtn');
-            const titleInput = document.getElementById('postTitle');
-            const contentInput = document.getElementById('postContent');
-            
-            if (publishBtn) {
-                publishBtn.addEventListener('click', async () => {
-                    const title = titleInput?.value || '';
-                    const content = contentInput?.value || '';
-                    const success = await createPost(title, content);
-                    if (success) {
-                        if (titleInput) titleInput.value = '';
-                        if (contentInput) contentInput.value = '';
-                        showSuccess('postFormError', '帖子发布成功！');
-                    } else {
-                        showError('postFormError', '发布失败，请检查网络或数据库配置');
-                    }
-                });
-            }
-            
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    if (titleInput) titleInput.value = '';
-                    if (contentInput) contentInput.value = '';
-                    clearError('postFormError');
-                });
-            }
-        }
-        
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                handleLogout();
-            });
-        }
-        
-        const retryBtn = document.getElementById('retryCheckBtnMain');
-        if (retryBtn) {
-            retryBtn.addEventListener('click', async () => {
-                await checkDatabaseTable();
-                if (tableExists) {
-                    await fetchPosts();
-                } else {
-                    renderMainPage(user);
-                }
-            });
-        }
-    }
-    
-    // 主渲染函数
-    function renderApp() {
-        const isLoggedIn = !!currentSession?.user;
-        const user = currentSession?.user || null;
-        
-        if (!isLoggedIn) {
-            renderAuthPage();
-        } else {
-            renderMainPage(user);
-        }
-    }
-    
-    // 初始化应用
-    async function init() {
-        try {
-            // 检查数据库表
-            await checkDatabaseTable();
-            
-            // 获取当前会话
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error) {
-                console.error('获取会话失败:', error);
-            }
-            currentSession = session;
-            
-            // 监听认证状态变化
-            supabase.auth.onAuthStateChange(async (_event, session) => {
-                currentSession = session;
-                if (session && tableExists) {
-                    await fetchPosts();
-                } else if (!session) {
-                    postsList = [];
-                    renderApp();
-                } else {
-                    renderApp();
-                }
-            });
-            
-            // 如果已登录且表存在，获取帖子
-            if (currentSession && tableExists) {
-                await fetchPosts();
-            } else {
-                renderApp();
-            }
-            
-            isInitialized = true;
-        } catch (err) {
-            console.error('初始化失败:', err);
-            appContainer.innerHTML = `
-                <div class="card">
-                    <div class="error-msg">❌ 连接服务器失败: ${err.message}</div>
-                    <button onclick="location.reload()" style="margin-top: 16px;">重新加载</button>
-                </div>
-            `;
-        }
-    }
-    
-    // 启动应用
-    init();
+// 切换页面
+function show(id) {
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 </script>
+
 </body>
 </html>
